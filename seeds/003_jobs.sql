@@ -1,0 +1,42 @@
+INSERT INTO jobs (id, company_id, created_by_user_id, title, description, requirements, location, employment_type, status, required_years_experience, required_skills, nice_to_have_skills, match_keywords, remote_friendly) VALUES
+-- TechRecruit Pro jobs
+('770e8400-e29b-41d4-a716-446655440000', '550e8400-e29b-41d4-a716-446655440000', '660e8400-e29b-41d4-a716-446655440001', 
+ 'Senior Full Stack Developer', 
+ 'We are looking for an experienced full stack developer to join our growing team. You will be responsible for developing both front-end and back-end components of our web applications.',
+ 'Required: 5+ years experience with React, Node.js, PostgreSQL, AWS. Preferred: Experience with TypeScript, Docker, Kubernetes.',
+ 'San Francisco, CA', 'full_time', 'active', 5, 
+ ARRAY['React', 'Node.js', 'PostgreSQL', 'AWS', 'JavaScript'], 
+ ARRAY['TypeScript', 'Docker', 'Kubernetes', 'CI/CD'],
+ ARRAY['full stack', 'web applications', 'cloud', 'scalable', 'API', 'microservices'],
+ false),
+
+('770e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440000', '660e8400-e29b-41d4-a716-446655440002',
+ 'DevOps Engineer',
+ 'Join our infrastructure team to help scale our platform. You will work on CI/CD pipelines, monitoring, and cloud infrastructure.',
+ 'Required: 3+ years DevOps experience, AWS/GCP, Docker, Kubernetes, Terraform. Preferred: Experience with monitoring tools like Datadog.',
+ 'Remote', 'full_time', 'active', 3,
+ ARRAY['AWS', 'GCP', 'Docker', 'Kubernetes', 'Terraform', 'CI/CD'],
+ ARRAY['Datadog', 'Prometheus', 'Grafana', 'ELK Stack', 'Python'],
+ ARRAY['infrastructure', 'monitoring', 'cloud', 'pipelines', 'automation', 'scaling'],
+ true),
+
+-- StartupHire jobs
+('770e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440001', '660e8400-e29b-41d4-a716-446655440004',
+ 'Frontend Developer',
+ 'Looking for a talented frontend developer to build beautiful user interfaces for our recruitment platform.',
+ 'Required: 2+ years React experience, CSS/SCSS, responsive design. Preferred: Next.js, Tailwind CSS.',
+ 'New York, NY', 'full_time', 'active', 2,
+ ARRAY['React', 'CSS', 'SCSS', 'JavaScript', 'HTML', 'Responsive Design'],
+ ARRAY['Next.js', 'Tailwind CSS', 'TypeScript', 'Redux'],
+ ARRAY['frontend', 'user interface', 'UI', 'UX', 'modern', 'responsive'],
+ false),
+
+('770e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440001', '660e8400-e29b-41d4-a716-446655440003',
+ 'Product Manager',
+ 'Drive product strategy and roadmap for our AI-powered recruitment tools.',
+ 'Required: 3+ years product management experience, B2B SaaS background. Preferred: Experience with AI/ML products.',
+ 'San Francisco, CA', 'full_time', 'active', 3,
+ ARRAY['Product Management', 'B2B SaaS', 'Product Strategy', 'Roadmap Planning', 'User Research'],
+ ARRAY['AI/ML Products', 'Analytics', 'Data Analysis', 'Agile', 'JIRA'],
+ ARRAY['product strategy', 'user-centered', 'SaaS', 'AI', 'ML', 'market research', 'analytics'],
+ true);
