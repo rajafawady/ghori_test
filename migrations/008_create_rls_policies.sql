@@ -43,10 +43,7 @@ DO $$
 BEGIN
     IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'batch_uploads') THEN
         ALTER TABLE batch_uploads ENABLE ROW LEVEL SECURITY;
-    END IF;
-    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'job_match_configs') THEN
-        ALTER TABLE job_match_configs ENABLE ROW LEVEL SECURITY;
-    END IF;
+    END IF; 
     IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'saved_searches') THEN
         ALTER TABLE saved_searches ENABLE ROW LEVEL SECURITY;
     END IF;
@@ -158,13 +155,7 @@ BEGIN
         EXECUTE 'CREATE POLICY batch_uploads_recruiter_create ON batch_uploads FOR INSERT WITH CHECK (company_id = public.user_company_id() AND EXISTS (SELECT 1 FROM users WHERE id = public.current_user_id() AND role IN (''admin'', ''recruiter'')))';
     END IF;
 
-    -- Job Match Configs RLS Policies
-    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'job_match_configs') THEN
-        EXECUTE 'CREATE POLICY job_match_configs_company_isolation ON job_match_configs FOR ALL USING (company_id = public.user_company_id())';
-        EXECUTE 'CREATE POLICY job_match_configs_create_own_company ON job_match_configs FOR INSERT WITH CHECK (company_id = public.user_company_id())';
-    END IF;
-
-    -- Saved Searches RLS Policies
+       -- Saved Searches RLS Policies
     IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'saved_searches') THEN
         EXECUTE 'CREATE POLICY saved_searches_company_isolation ON saved_searches FOR ALL USING (company_id = public.user_company_id())';
         EXECUTE 'CREATE POLICY saved_searches_create_own_company ON saved_searches FOR INSERT WITH CHECK (company_id = public.user_company_id())';
