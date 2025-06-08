@@ -17,9 +17,8 @@ INSERT INTO job_matches (id, job_id, candidate_id, company_id, match_score, ai_s
  '["Strong AWS and Kubernetes experience", "Proven CI/CD pipeline experience", "Monitoring tools experience", "Infrastructure scaling experience"]',
  '["Limited Terraform experience mentioned", "No specific GCP experience"]',
  'Strong candidate with relevant experience. Would be a good fit for the DevOps role.',
- 90.0, 95.0, 80.0, 87.0,
- ARRAY['AWS', 'Kubernetes', 'Docker', 'CI/CD', 'Python'],
- ARRAY['GCP'],
+ 90.0, 95.0, 80.0, 87.0, ARRAY['AWS', 'Kubernetes', 'Docker', 'CI/CD', 'Python'],
+ ARRAY['Terraform', 'GCP'],
  'completed', NOW() - INTERVAL '2 hours'),
 
 ('990e8400-e29b-41d4-a716-446655440002', '770e8400-e29b-41d4-a716-446655440000', '880e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440000',
@@ -40,6 +39,9 @@ INSERT INTO job_matches (id, job_id, candidate_id, company_id, match_score, ai_s
  '["3+ years React experience", "Next.js expertise", "TypeScript skills", "Tailwind CSS experience", "Strong design background"]',
  '["Slightly more experience than minimum required", "Could benefit from more complex application experience"]',
  'Highly recommended. Strong technical skills and design sense make her ideal for this frontend role.',
+ 95.0, 90.0, 85.0, 88.0,
+ ARRAY['React', 'Next.js', 'TypeScript', 'Tailwind CSS', 'JavaScript'],
+ ARRAY['Vue.js'],
  'completed', NOW() - INTERVAL '4 hours'),
 
 ('990e8400-e29b-41d4-a716-446655440004', '770e8400-e29b-41d4-a716-446655440003', '880e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440001',
@@ -48,4 +50,7 @@ INSERT INTO job_matches (id, job_id, candidate_id, company_id, match_score, ai_s
  '["5+ years product management experience", "Strong B2B SaaS background", "Proven track record with user growth", "Data-driven approach", "Enterprise customer experience"]',
  '["No specific AI/ML product experience mentioned"]',
  'Excellent candidate. Perfect background for this product manager role with strong B2B SaaS experience.',
+ 88.0, 95.0, 92.0, 97.0,
+ ARRAY['Product Management', 'B2B SaaS', 'User Research', 'Data Analysis'],
+ ARRAY['AI/ML'],
  'completed', NOW() - INTERVAL '5 hours');

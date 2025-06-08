@@ -29,7 +29,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Enable RLS on all tables
+-- Enable RLS on all existing tables
 ALTER TABLE companies ENABLE ROW LEVEL SECURITY;
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE jobs ENABLE ROW LEVEL SECURITY;
@@ -37,14 +37,35 @@ ALTER TABLE candidates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE job_matches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_processing_queue ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE batch_uploads ENABLE ROW LEVEL SECURITY;
-ALTER TABLE job_match_configs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE saved_searches ENABLE ROW LEVEL SECURITY;
-ALTER TABLE candidate_tags ENABLE ROW LEVEL SECURITY;
-ALTER TABLE candidate_tag_assignments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE processing_metrics ENABLE ROW LEVEL SECURITY;
-ALTER TABLE candidate_statuses ENABLE ROW LEVEL SECURITY;
-ALTER TABLE candidate_comments ENABLE ROW LEVEL SECURITY;
+
+-- Enable RLS on tables that may not exist yet (will be created in later migrations)
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'batch_uploads') THEN
+        ALTER TABLE batch_uploads ENABLE ROW LEVEL SECURITY;
+    END IF;
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'job_match_configs') THEN
+        ALTER TABLE job_match_configs ENABLE ROW LEVEL SECURITY;
+    END IF;
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'saved_searches') THEN
+        ALTER TABLE saved_searches ENABLE ROW LEVEL SECURITY;
+    END IF;
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'candidate_tags') THEN
+        ALTER TABLE candidate_tags ENABLE ROW LEVEL SECURITY;
+    END IF;
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'candidate_tag_assignments') THEN
+        ALTER TABLE candidate_tag_assignments ENABLE ROW LEVEL SECURITY;
+    END IF;
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'processing_metrics') THEN
+        ALTER TABLE processing_metrics ENABLE ROW LEVEL SECURITY;
+    END IF;
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'candidate_statuses') THEN
+        ALTER TABLE candidate_statuses ENABLE ROW LEVEL SECURITY;
+    END IF;
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'candidate_comments') THEN
+        ALTER TABLE candidate_comments ENABLE ROW LEVEL SECURITY;
+    END IF;
+END $$;
 
 -- Companies RLS Policies
 CREATE POLICY companies_isolation ON companies
@@ -127,65 +148,54 @@ FOR INSERT WITH CHECK (
     )
 );
 
--- Batch Uploads RLS Policies
-CREATE POLICY batch_uploads_company_isolation ON batch_uploads
-FOR ALL USING (company_id = public.user_company_id());
+-- Conditional RLS Policies for tables that may not exist yet
+DO $$
+BEGIN
+    -- Batch Uploads RLS Policies
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'batch_uploads') THEN
+        EXECUTE 'CREATE POLICY batch_uploads_company_isolation ON batch_uploads FOR ALL USING (company_id = public.user_company_id())';
+        EXECUTE 'CREATE POLICY batch_uploads_create_own_company ON batch_uploads FOR INSERT WITH CHECK (company_id = public.user_company_id())';
+        EXECUTE 'CREATE POLICY batch_uploads_recruiter_create ON batch_uploads FOR INSERT WITH CHECK (company_id = public.user_company_id() AND EXISTS (SELECT 1 FROM users WHERE id = public.current_user_id() AND role IN (''admin'', ''recruiter'')))';
+    END IF;
 
-CREATE POLICY batch_uploads_create_own_company ON batch_uploads
-FOR INSERT WITH CHECK (company_id = public.user_company_id());
+    -- Job Match Configs RLS Policies
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'job_match_configs') THEN
+        EXECUTE 'CREATE POLICY job_match_configs_company_isolation ON job_match_configs FOR ALL USING (company_id = public.user_company_id())';
+        EXECUTE 'CREATE POLICY job_match_configs_create_own_company ON job_match_configs FOR INSERT WITH CHECK (company_id = public.user_company_id())';
+    END IF;
 
-CREATE POLICY batch_uploads_recruiter_create ON batch_uploads
-FOR INSERT WITH CHECK (
-    company_id = public.user_company_id()
-    AND EXISTS (
-        SELECT 1 FROM users 
-        WHERE id = public.current_user_id() 
-        AND role IN ('admin', 'recruiter')
-    )
-);
+    -- Saved Searches RLS Policies
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'saved_searches') THEN
+        EXECUTE 'CREATE POLICY saved_searches_company_isolation ON saved_searches FOR ALL USING (company_id = public.user_company_id())';
+        EXECUTE 'CREATE POLICY saved_searches_create_own_company ON saved_searches FOR INSERT WITH CHECK (company_id = public.user_company_id())';
+    END IF;
 
--- Job Match Configs RLS Policies
-CREATE POLICY job_match_configs_company_isolation ON job_match_configs
-FOR ALL USING (company_id = public.user_company_id());
+    -- Candidate Tags RLS Policies
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'candidate_tags') THEN
+        EXECUTE 'CREATE POLICY candidate_tags_company_isolation ON candidate_tags FOR ALL USING (company_id = public.user_company_id())';
+        EXECUTE 'CREATE POLICY candidate_tags_create_own_company ON candidate_tags FOR INSERT WITH CHECK (company_id = public.user_company_id())';
+    END IF;
 
-CREATE POLICY job_match_configs_create_own_company ON job_match_configs
-FOR INSERT WITH CHECK (company_id = public.user_company_id());
+    -- Candidate Tag Assignments RLS Policies
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'candidate_tag_assignments') THEN
+        EXECUTE 'CREATE POLICY candidate_tag_assignments_company_isolation ON candidate_tag_assignments FOR ALL USING (company_id = public.user_company_id())';
+        EXECUTE 'CREATE POLICY candidate_tag_assignments_create_own_company ON candidate_tag_assignments FOR INSERT WITH CHECK (company_id = public.user_company_id())';
+    END IF;
 
--- Saved Searches RLS Policies
-CREATE POLICY saved_searches_company_isolation ON saved_searches
-FOR ALL USING (company_id = public.user_company_id());
+    -- Processing Metrics RLS Policies
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'processing_metrics') THEN
+        EXECUTE 'CREATE POLICY processing_metrics_company_isolation ON processing_metrics FOR ALL USING (company_id = public.user_company_id())';
+    END IF;
 
-CREATE POLICY saved_searches_create_own_company ON saved_searches
-FOR INSERT WITH CHECK (company_id = public.user_company_id());
+    -- Candidate Statuses RLS Policies
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'candidate_statuses') THEN
+        EXECUTE 'CREATE POLICY candidate_statuses_company_isolation ON candidate_statuses FOR ALL USING (company_id = public.user_company_id())';
+        EXECUTE 'CREATE POLICY candidate_statuses_create_own_company ON candidate_statuses FOR INSERT WITH CHECK (company_id = public.user_company_id())';
+    END IF;
 
--- Candidate Tags RLS Policies
-CREATE POLICY candidate_tags_company_isolation ON candidate_tags
-FOR ALL USING (company_id = public.user_company_id());
-
-CREATE POLICY candidate_tags_create_own_company ON candidate_tags
-FOR INSERT WITH CHECK (company_id = public.user_company_id());
-
--- Candidate Tag Assignments RLS Policies
-CREATE POLICY candidate_tag_assignments_company_isolation ON candidate_tag_assignments
-FOR ALL USING (company_id = public.user_company_id());
-
-CREATE POLICY candidate_tag_assignments_create_own_company ON candidate_tag_assignments
-FOR INSERT WITH CHECK (company_id = public.user_company_id());
-
--- Processing Metrics RLS Policies
-CREATE POLICY processing_metrics_company_isolation ON processing_metrics
-FOR ALL USING (company_id = public.user_company_id());
-
--- Candidate Statuses RLS Policies
-CREATE POLICY candidate_statuses_company_isolation ON candidate_statuses
-FOR ALL USING (company_id = public.user_company_id());
-
-CREATE POLICY candidate_statuses_create_own_company ON candidate_statuses
-FOR INSERT WITH CHECK (company_id = public.user_company_id());
-
--- Candidate Comments RLS Policies
-CREATE POLICY candidate_comments_company_isolation ON candidate_comments
-FOR ALL USING (company_id = public.user_company_id());
-
-CREATE POLICY candidate_comments_create_own_company ON candidate_comments
-FOR INSERT WITH CHECK (company_id = public.user_company_id());
+    -- Candidate Comments RLS Policies
+    IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'candidate_comments') THEN
+        EXECUTE 'CREATE POLICY candidate_comments_company_isolation ON candidate_comments FOR ALL USING (company_id = public.user_company_id())';
+        EXECUTE 'CREATE POLICY candidate_comments_create_own_company ON candidate_comments FOR INSERT WITH CHECK (company_id = public.user_company_id())';
+    END IF;
+END $$;
