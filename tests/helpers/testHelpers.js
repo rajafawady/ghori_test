@@ -21,7 +21,10 @@ async function createTestCompany(name = 'Test Company', subscription = 'professi
  * Create a test user
  */
 async function createTestUser(companyId, role = 'admin', name = 'Test User', emailPrefix = 'test') {
-  const email = `${emailPrefix}@test-company.test`;
+  if (!companyId) {
+    companyId = await createTestCompany();
+  }
+  const email = `${emailPrefix}-${Date.now()}@test-company.test`;
   const result = await db.query(`
     INSERT INTO users (company_id, email, full_name, role, password_hash)
     VALUES ($1, $2, $3, $4, $5)
@@ -33,32 +36,46 @@ async function createTestUser(companyId, role = 'admin', name = 'Test User', ema
 /**
  * Create a test job
  */
-async function createTestJob(companyId, title = 'Test Job', description = 'Test job description') {
+async function createTestJob(companyId, createdByUserId, title = 'Test Job', description = 'Test job description') {
+  if (!companyId) {
+    companyId = await createTestCompany();
+  }
+  if (!createdByUserId) {
+    createdByUserId = await createTestUser(companyId);
+  }
   const result = await db.query(`
-    INSERT INTO jobs (company_id, title, description, skills_required, experience_required)
-    VALUES ($1, $2, $3, $4, $5)
+    INSERT INTO jobs (company_id, created_by_user_id, title, description, requirements, required_skills, employment_type)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING id
-  `, [companyId, title, description, ['skill1', 'skill2', 'skill3'], '2+ years']);
+  `, [companyId, createdByUserId, title, description, 'Test requirements', ['javascript', 'nodejs', 'postgresql'], 'full_time']);
   return result.rows[0].id;
 }
 
 /**
  * Create a test candidate
  */
-async function createTestCandidate(companyId, name = 'Test Candidate', emailPrefix = 'candidate') {
-  const email = `${emailPrefix}@example.com`;
+async function createTestCandidate(companyId, uploadedByUserId, name = 'Test Candidate', emailPrefix = 'candidate') {
+  if (!companyId) {
+    companyId = await createTestCompany();
+  }
+  if (!uploadedByUserId) {
+    uploadedByUserId = await createTestUser(companyId);
+  }
+  const email = `${emailPrefix}-${Date.now()}@example.com`;
   const result = await db.query(`
-    INSERT INTO candidates (company_id, full_name, email, phone, resume_text, skills, experience_years)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    INSERT INTO candidates (company_id, uploaded_by_user_id, full_name, email, phone, cv_file_path, cv_file_name, cv_text_content, top_skills)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING id
   `, [
     companyId, 
+    uploadedByUserId,
     name, 
     email, 
     '555-123-4567',
+    '/uploads/test-cv.pdf',
+    'test-cv.pdf',
     'Test resume content with various skills and experience.',
-    ['javascript', 'nodejs', 'postgresql'],
-    3
+    ['javascript', 'nodejs', 'postgresql']
   ]);
   return result.rows[0].id;
 }
@@ -99,6 +116,27 @@ async function cleanupTestData(companyIds = []) {
   await db.query(`DELETE FROM api_usage WHERE company_id IN (${placeholders})`, companyIds);
   await db.query(`DELETE FROM users WHERE company_id IN (${placeholders})`, companyIds);
   await db.query(`DELETE FROM companies WHERE id IN (${placeholders})`, companyIds);
+}
+
+/**
+ * Clean up all test data (use with caution)
+ */
+async function cleanupAllTestData() {
+  // Delete all test data in correct order
+  await db.query(`DELETE FROM candidate_comments WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
+  await db.query(`DELETE FROM candidate_tag_assignments WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
+  await db.query(`DELETE FROM candidate_tags WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
+  await db.query(`DELETE FROM candidate_statuses WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
+  await db.query(`DELETE FROM job_matches WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
+  await db.query(`DELETE FROM candidates WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
+  await db.query(`DELETE FROM job_match_configs WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
+  await db.query(`DELETE FROM jobs WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
+  await db.query(`DELETE FROM batch_uploads WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
+  await db.query(`DELETE FROM saved_searches WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
+  await db.query(`DELETE FROM processing_metrics WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
+  await db.query(`DELETE FROM audit_logs WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
+  await db.query(`DELETE FROM api_usage WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);  await db.query(`DELETE FROM users WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
+  await db.query(`DELETE FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%'`);
 }
 
 /**
@@ -197,6 +235,7 @@ module.exports = {
   createTestCandidate,
   createTestJobMatch,
   cleanupTestData,
+  cleanupAllTestData,
   createTestScenario,
   tableExists,
   columnExists,
