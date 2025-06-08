@@ -81,7 +81,7 @@ INSERT INTO candidates (id, company_id, uploaded_by_user_id, full_name, email, p
  ARRAY['backend', 'python', 'api', 'database', 'microservices', 'performance'],
  'Skilled backend engineer with expertise in building scalable APIs and optimizing database performance.'),
 
-('880e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440002', '660e8400-e29b-41d4-a716-446655440006',
+('880e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440002', '660e8400-e29b-41d4-a716-446655440005',
  'Sarah Rodriguez', 'sarah.rodriguez@email.com', '+1-555-0129',
  'uploads/550e8400-e29b-41d4-a716-446655440002/880e8400-e29b-41d4-a716-446655440006/sarah_rodriguez_cv.pdf',
  'sarah_rodriguez_cv.pdf',
