@@ -107,13 +107,63 @@ async function clearCurrentUser() {
   await setCurrentUser(null);
 }
 
+/**
+ * Setup test database - verify connection and prepare for testing
+ */
+async function setupTestDatabase() {
+  try {
+    console.log('Setting up test database...');
+    
+    // Test the connection
+    const connected = await testConnection();
+    if (!connected) {
+      throw new Error('Failed to connect to test database');
+    }
+    
+    // Verify we're in test environment
+    if (process.env.NODE_ENV !== 'test') {
+      console.warn('Warning: Not running in test environment');
+    }
+    
+    console.log('Test database setup complete');
+    return true;
+  } catch (error) {
+    console.error('Failed to setup test database:', error);
+    throw error;
+  }
+}
+
+/**
+ * Cleanup test database connections
+ */
+async function cleanupTestDatabase() {
+  try {
+    console.log('Cleaning up test database connections...');
+    await close();
+    console.log('Test database cleanup complete');
+  } catch (error) {
+    console.error('Failed to cleanup test database:', error);
+    throw error;
+  }
+}
+
+/**
+ * Close pool (alias for close for backwards compatibility)
+ */
+async function closePool() {
+  await close();
+}
+
 module.exports = {
   query,
   getClient,
   getPool,
   close,
+  closePool,
   testConnection,
   setCurrentUser,
   clearCurrentUser,
+  setupTestDatabase,
+  cleanupTestDatabase,
   dbConfig
 };

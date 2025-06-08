@@ -7,75 +7,124 @@ const db = require('../helpers/db');
 /**
  * Create a test company
  */
-async function createTestCompany(name = 'Test Company', subscription = 'professional') {
-  const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+async function createTestCompany(companyData = {}) {
+  const defaultData = {
+    name: 'Test Company',
+    subscription_plan: 'professional',
+    max_users: 10,
+    max_jobs_per_month: 25
+  };
+  
+  const data = { ...defaultData, ...companyData };
+  const slug = data.slug || data.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  
   const result = await db.query(`
-    INSERT INTO companies (name, slug, subscription_plan)
-    VALUES ($1, $2, $3)
+    INSERT INTO companies (name, slug, subscription_plan, max_users, max_jobs_per_month)
+    VALUES ($1, $2, $3, $4, $5)
     RETURNING id
-  `, [name, slug, subscription]);
+  `, [data.name, slug, data.subscription_plan, data.max_users, data.max_jobs_per_month]);
   return result.rows[0].id;
 }
 
 /**
  * Create a test user
  */
-async function createTestUser(companyId, role = 'admin', name = 'Test User', emailPrefix = 'test') {
+async function createTestUser(companyId, userData = {}) {
   if (!companyId) {
     companyId = await createTestCompany();
   }
-  const email = `${emailPrefix}-${Date.now()}@test-company.test`;
+  
+  const defaultData = {
+    role: 'recruiter',
+    name: 'Test User',
+    emailPrefix: 'test'
+  };
+  
+  const data = { ...defaultData, ...userData };
+  const email = data.email || `${data.emailPrefix}-${Date.now()}@example.com`;
+  
   const result = await db.query(`
-    INSERT INTO users (company_id, email, full_name, role, password_hash)
+    INSERT INTO users (company_id, email, name, role, password_hash)
     VALUES ($1, $2, $3, $4, $5)
     RETURNING id
-  `, [companyId, email, name, role, 'test_hash_123']);
+  `, [companyId, email, data.name, data.role, 'test_hash_123']);
   return result.rows[0].id;
 }
 
 /**
  * Create a test job
  */
-async function createTestJob(companyId, createdByUserId, title = 'Test Job', description = 'Test job description') {
+async function createTestJob(companyId, createdByUserId, jobData = {}) {
   if (!companyId) {
     companyId = await createTestCompany();
   }
   if (!createdByUserId) {
     createdByUserId = await createTestUser(companyId);
   }
+  
+  const defaultData = {
+    title: 'Test Job',
+    description: 'Test job description',
+    requirements: 'Test requirements',
+    employment_type: 'full_time',
+    salary_min: 70000,
+    salary_max: 100000,
+    location: 'Test Location',
+    required_skills: ['JavaScript', 'Node.js', 'PostgreSQL'],
+    status: 'active'
+  };
+  
+  const data = { ...defaultData, ...jobData };
+  
   const result = await db.query(`
-    INSERT INTO jobs (company_id, created_by_user_id, title, description, requirements, required_skills, employment_type)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    INSERT INTO jobs (company_id, created_by_user_id, title, description, requirements, required_skills, employment_type, salary_min, salary_max, location, status)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     RETURNING id
-  `, [companyId, createdByUserId, title, description, 'Test requirements', ['javascript', 'nodejs', 'postgresql'], 'full_time']);
+  `, [companyId, createdByUserId, data.title, data.description, data.requirements, data.required_skills, data.employment_type, data.salary_min, data.salary_max, data.location, data.status]);
   return result.rows[0].id;
 }
 
 /**
  * Create a test candidate
  */
-async function createTestCandidate(companyId, uploadedByUserId, name = 'Test Candidate', emailPrefix = 'candidate') {
+async function createTestCandidate(companyId, uploadedByUserId, candidateData = {}) {
   if (!companyId) {
     companyId = await createTestCompany();
   }
   if (!uploadedByUserId) {
     uploadedByUserId = await createTestUser(companyId);
   }
-  const email = `${emailPrefix}-${Date.now()}@example.com`;
+  
+  const defaultData = {
+    name: 'Test Candidate',
+    emailPrefix: 'candidate',
+    phone: '555-123-4567',
+    location: 'Test Location',
+    top_skills: ['JavaScript', 'Node.js', 'PostgreSQL'],
+    desired_position: 'Software Engineer',
+    desired_salary: 80000
+  };
+  
+  const data = { ...defaultData, ...candidateData };
+  const email = data.email || `${data.emailPrefix}-${Date.now()}@example.com`;
+  
   const result = await db.query(`
-    INSERT INTO candidates (company_id, uploaded_by_user_id, full_name, email, phone, cv_file_path, cv_file_name, cv_text_content, top_skills)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    INSERT INTO candidates (company_id, uploaded_by_user_id, name, email, phone, location, cv_file_path, cv_file_name, cv_text_content, top_skills, desired_position, desired_salary)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
     RETURNING id
   `, [
     companyId, 
     uploadedByUserId,
-    name, 
+    data.name, 
     email, 
-    '555-123-4567',
+    data.phone,
+    data.location,
     '/uploads/test-cv.pdf',
     'test-cv.pdf',
     'Test resume content with various skills and experience.',
-    ['javascript', 'nodejs', 'postgresql']
+    data.top_skills,
+    data.desired_position,
+    data.desired_salary
   ]);
   return result.rows[0].id;
 }
@@ -132,10 +181,10 @@ async function cleanupAllTestData() {
   await db.query(`DELETE FROM job_match_configs WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
   await db.query(`DELETE FROM jobs WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
   await db.query(`DELETE FROM batch_uploads WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
-  await db.query(`DELETE FROM saved_searches WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
-  await db.query(`DELETE FROM processing_metrics WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
+  await db.query(`DELETE FROM saved_searches WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);  await db.query(`DELETE FROM processing_metrics WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
   await db.query(`DELETE FROM audit_logs WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
-  await db.query(`DELETE FROM api_usage WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);  await db.query(`DELETE FROM users WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
+  await db.query(`DELETE FROM api_usage WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
+  await db.query(`DELETE FROM users WHERE company_id IN (SELECT id FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%')`);
   await db.query(`DELETE FROM companies WHERE name LIKE '%Test%' OR slug LIKE '%test%'`);
 }
 
@@ -143,13 +192,13 @@ async function cleanupAllTestData() {
  * Create a complete test scenario with company, user, job, and candidates
  */
 async function createTestScenario() {
-  const companyId = await createTestCompany('Test Scenario Company');
-  const adminId = await createTestUser(companyId, 'admin', 'Test Admin', 'admin');
-  const recruiterId = await createTestUser(companyId, 'recruiter', 'Test Recruiter', 'recruiter');
-  const viewerId = await createTestUser(companyId, 'viewer', 'Test Viewer', 'viewer');
-  const jobId = await createTestJob(companyId, 'Senior Developer', 'Looking for a senior developer');
-  const candidateId1 = await createTestCandidate(companyId, 'John Doe', 'john.doe');
-  const candidateId2 = await createTestCandidate(companyId, 'Jane Smith', 'jane.smith');
+  const companyId = await createTestCompany({ name: 'Test Scenario Company' });
+  const adminId = await createTestUser(companyId, { role: 'admin', name: 'Test Admin', emailPrefix: 'admin' });
+  const recruiterId = await createTestUser(companyId, { role: 'recruiter', name: 'Test Recruiter', emailPrefix: 'recruiter' });
+  const viewerId = await createTestUser(companyId, { role: 'viewer', name: 'Test Viewer', emailPrefix: 'viewer' });
+  const jobId = await createTestJob(companyId, recruiterId, { title: 'Senior Developer', description: 'Looking for a senior developer' });
+  const candidateId1 = await createTestCandidate(companyId, recruiterId, { name: 'John Doe', emailPrefix: 'john.doe' });
+  const candidateId2 = await createTestCandidate(companyId, recruiterId, { name: 'Jane Smith', emailPrefix: 'jane.smith' });
   
   return {
     companyId,
