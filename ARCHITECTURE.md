@@ -85,38 +85,7 @@ The system is designed to scale efficiently:
 15. **API Usage Tracking** - SaaS billing and usage monitoring
 16. **Usage Limits** - Company-level billing and overage management
 
-## Testing Strategy
 
-### Comprehensive Test Coverage with Node.js/Jest
-
-The system includes extensive automated testing using modern JavaScript tooling:
-
-**Test Categories:**
-- **Schema Tests**: Table structure, constraints, indexes, and data types
-- **Security Tests**: Company isolation, RLS policies, and access control
-- **CRUD Tests**: Create, Read, Update, Delete operations for all entities
-- **Integration Tests**: End-to-end workflow testing (matching flow, candidate pipeline)
-- **Performance Tests**: Query performance and scalability validation
-
-**Test Structure:**
-```
-tests/
-├── package.json          # Dependencies and Jest configuration
-├── schema/              # Database structure tests
-├── security/            # Security policy tests
-├── crud/               # CRUD operation tests
-├── integration/        # End-to-end workflow tests
-├── performance/        # Performance benchmark tests
-├── helpers/            # Test utilities and database helpers
-└── setup/              # Jest configuration and setup
-```
-
-**Running Tests:**
-```bash
-cd tests
-npm install
-npm test
-```
 
 ## Getting Started
 
@@ -141,15 +110,15 @@ npm test
    ./scripts/run_migrations.sh
    ```
 
-### Running Tests
+### Running the System
 
-Execute the comprehensive test suite:
+Execute the setup:
 ```powershell
-.\tests\run_tests.ps1
+.\scripts\setup_database.ps1
 ```
 *Or on Unix systems:*
 ```bash
-./tests/run_tests.sh
+./scripts/setup_database.sh
 ```
 
 ## Schema Highlights
