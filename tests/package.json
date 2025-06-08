@@ -1,30 +1,24 @@
 {
-  "name": "cv-matcher-database",
+  "name": "job-matcher-tests",
   "version": "1.0.0",
-  "description": "CV Matcher Database Schema and Tests",
+  "description": "Job Matcher Database Schema and Tests",
   "main": "index.js",
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:schema": "jest tests/schema",
-    "test:crud": "jest tests/crud", 
-    "test:security": "jest tests/security",
-    "test:integration": "jest tests/integration",
-    "test:performance": "jest tests/performance",
-    "setup:db": "node tests/setup/setupDatabase.js",
-    "migrate": "node scripts/migrate.js",
-    "seed": "node scripts/seed.js"
+    "test:schema": "jest schema",
+    "test:crud": "jest crud", 
+    "test:security": "jest security",
+    "test:performance": "jest performance",    "db:migrate": "powershell -ExecutionPolicy Bypass -File ../scripts/run_migrations.ps1",
+    "db:setup": "powershell -ExecutionPolicy Bypass -File ../scripts/setup_database.ps1"
   },
-  "keywords": ["database", "postgresql", "testing", "cv-matcher", "recruitment"],
+  "keywords": ["database", "postgresql", "testing", "job-matcher", "recruitment", "ai", "matching"],
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "jest": "^29.7.0",
-    "pg": "^8.11.3",
-    "dotenv": "^16.3.1",
-    "@types/jest": "^29.5.8",
-    "@types/pg": "^8.10.7"
+    "@types/jest": "^29.5.8"
   },
   "dependencies": {
     "pg": "^8.11.3",
@@ -33,16 +27,18 @@
   "jest": {
     "testEnvironment": "node",
     "testMatch": [
-      "**/tests/**/*.test.js"
+      "**/*.test.js"
     ],
     "setupFilesAfterEnv": [
-      "<rootDir>/tests/setup/jest.setup.js"
+      "<rootDir>/setup/jest.setup.js"
     ],
     "collectCoverageFrom": [
-      "tests/**/*.js",
-      "!tests/setup/**",
-      "!tests/helpers/**"
+      "**/*.js",
+      "!setup/**",
+      "!helpers/**",
+      "!node_modules/**"
     ],
-    "testTimeout": 30000
+    "testTimeout": 30000,
+    "verbose": true
   }
 }
