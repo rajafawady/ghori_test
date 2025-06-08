@@ -87,29 +87,35 @@ The system is designed to scale efficiently:
 
 ## Testing Strategy
 
-### Comprehensive Test Coverage with pgTAP
+### Comprehensive Test Coverage with Node.js/Jest
 
-The system includes extensive automated testing:
+The system includes extensive automated testing using modern JavaScript tooling:
 
 **Test Categories:**
 - **Schema Tests**: Table structure, constraints, indexes, and data types
-- **RLS Tests**: Company isolation and role-based access control
+- **Security Tests**: Company isolation, RLS policies, and access control
 - **CRUD Tests**: Create, Read, Update, Delete operations for all entities
-- **Function Tests**: Database functions and business logic validation
 - **Integration Tests**: End-to-end workflow testing (matching flow, candidate pipeline)
 - **Performance Tests**: Query performance and scalability validation
 
 **Test Structure:**
 ```
 tests/
-├── pgtap/
-│   ├── schema/        # Database structure tests
-│   ├── rls/          # Security policy tests
-│   ├── crud/         # CRUD operation tests
-│   ├── functions/    # Database function tests
-│   ├── integration/  # End-to-end workflow tests
-│   └── performance/  # Performance benchmark tests
-└── helpers/          # Test utilities and setup scripts
+├── package.json          # Dependencies and Jest configuration
+├── schema/              # Database structure tests
+├── security/            # Security policy tests
+├── crud/               # CRUD operation tests
+├── integration/        # End-to-end workflow tests
+├── performance/        # Performance benchmark tests
+├── helpers/            # Test utilities and database helpers
+└── setup/              # Jest configuration and setup
+```
+
+**Running Tests:**
+```bash
+cd tests
+npm install
+npm test
 ```
 
 ## Getting Started

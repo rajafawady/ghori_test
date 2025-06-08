@@ -1,6 +1,6 @@
-# CV Matcher Database Testing Strategy with pgTAP
+# CV Matcher Database Testing Strategy with Node.js/Jest
 
-This document outlines our comprehensive testing strategy for the CV Matcher database using pgTAP, a TAP-compliant testing framework for PostgreSQL.
+This document outlines our comprehensive testing strategy for the CV Matcher database using Jest and Node.js, providing a modern JavaScript-based testing framework for PostgreSQL databases.
 
 ## Overview
 
@@ -13,65 +13,55 @@ Our testing approach ensures:
 5. Business logic validation
 6. Performance baseline validation
 
-## Setup and Requirements
+## Prerequisites
 
-### Prerequisites
+- Node.js (version 16 or higher)
+- npm package manager
+- PostgreSQL database
+- Test database environment
 
-- PostgreSQL 12+ installed
-- pgTAP extension installed
-- pg_prove utility installed (for TAP output)
-
-### Installation
+## Setup
 
 ```bash
-# Install pgTAP in your PostgreSQL instance
-git clone https://github.com/theory/pgtap.git
-cd pgtap
-make
-make installcheck
-make install
+# Navigate to tests directory
+cd tests
 
-# Install pg_prove for test runner
-cpan TAP::Parser::SourceHandler::pgTAP
+# Install dependencies
+npm install
+
+# Copy environment configuration
+cp .env.example .env
+
+# Edit .env with your test database credentials
 ```
 
 ## Test Directory Structure
 
 ```
 tests/
-├── pgtap/
-│   ├── setup/
-│   │   └── install_pgtap.sql
-│   ├── schema/
-│   │   ├── table_tests.sql
-│   │   ├── column_tests.sql
-│   │   ├── constraint_tests.sql
-│   │   └── index_tests.sql
-│   ├── functions/
-│   │   ├── user_functions_tests.sql
-│   │   └── matching_algorithm_tests.sql
-│   ├── rls/
-│   │   ├── company_isolation_tests.sql
-│   │   └── role_based_access_tests.sql
-│   ├── crud/
-│   │   ├── companies_crud_tests.sql
-│   │   ├── users_crud_tests.sql
-│   │   ├── jobs_crud_tests.sql
-│   │   ├── candidates_crud_tests.sql
-│   │   └── job_matches_crud_tests.sql
-│   ├── integration/
-│   │   ├── matching_flow_tests.sql
-│   │   └── candidate_pipeline_tests.sql
-│   └── performance/
-│       └── query_performance_tests.sql
-└── helpers/
-    ├── setup_test_data.sql
-    └── test_utilities.sql
+├── package.json              # Node.js dependencies and Jest configuration
+├── .env.example              # Environment variables template
+├── jest.setup.js             # Jest global setup
+├── schema/
+│   └── schema.test.js        # Database schema validation tests
+├── crud/
+│   └── crud.test.js          # CRUD operations tests
+├── security/
+│   └── security.test.js      # Security and RLS policy tests
+├── integration/
+│   └── integration.test.js   # End-to-end workflow tests
+├── performance/
+│   └── performance.test.js   # Performance benchmark tests
+├── helpers/
+│   ├── db.js                 # Database connection utilities
+│   └── testHelpers.js        # Test data generation utilities
+└── setup/
+    └── jest.setup.js         # Jest test environment setup
 ```
 
 ## Test Categories
 
-### 1. Schema Tests
+### 1. Schema Tests (`tests/schema/schema.test.js`)
 
 Verify that database objects exist with correct definitions:
 
@@ -79,26 +69,9 @@ Verify that database objects exist with correct definitions:
 - Primary keys, foreign keys, and other constraints
 - Indexes for performance optimization
 - ENUMs and custom types
+- Row-Level Security policies
 
-### 2. Function Tests
-
-Validate that database functions work as expected:
-
-- User management functions
-- Security-related functions
-- Business logic functions
-- Triggers and procedures
-
-### 3. RLS Tests
-
-Comprehensive tests for Row-Level Security:
-
-- Company isolation (tenant separation)
-- Role-based access (admin, recruiter, viewer)
-- Data visibility rules
-- Insertion/modification restrictions
-
-### 4. CRUD Operation Tests
+### 2. CRUD Operation Tests (`tests/crud/crud.test.js`)
 
 Test Create, Read, Update, and Delete operations for each entity:
 
@@ -107,140 +80,235 @@ Test Create, Read, Update, and Delete operations for each entity:
 - Jobs management
 - Candidates management
 - Job matches and scoring
+- All supporting tables
 
-### 5. Integration Tests
+### 3. Security Tests (`tests/security/security.test.js`)
+
+Comprehensive tests for database security:
+
+- Company isolation (tenant separation)
+- Role-based access (admin, recruiter, viewer)
+- SQL injection protection
+- Data visibility rules
+- Input validation and constraints
+
+### 4. Integration Tests (`tests/integration/integration.test.js`)
 
 Test complete workflows and interactions between components:
 
 - CV upload and processing flow
 - Job matching algorithm
 - Candidate pipeline state transitions
-- Batch processing systems
+- User authentication and authorization workflows
 
-### 6. Performance Tests
+### 5. Performance Tests (`tests/performance/performance.test.js`)
 
 Establish performance baselines and verify query optimization:
 
 - Query execution time for common operations
 - Index usage validation
-- Connection overhead tests
+- Bulk operation performance
+- Concurrent access patterns
 
 ## Test Implementation Approach
 
-### Using pgTAP
+### Using Jest with Node.js
 
-Each test file will follow this general structure:
+Each test file follows this general structure:
 
-```sql
-\set ON_ERROR_ROLLBACK 1
-\set ON_ERROR_STOP true
+```javascript
+const { Pool } = require('pg');
+const { setupTestDb, cleanupTestDb, createTestData } = require('../helpers/testHelpers');
 
-BEGIN;
+describe('Entity Tests', () => {
+  let db;
 
--- Load pgTAP
-SELECT plan(N); -- N is the number of tests to run
+  beforeAll(async () => {
+    db = await setupTestDb();
+  });
 
--- Test fixtures setup
--- ...test setup code...
+  afterAll(async () => {
+    await cleanupTestDb(db);
+  });
 
--- Actual tests
-SELECT has_table('public', 'companies', 'Table companies should exist');
-SELECT col_is_pk('public', 'companies', 'id', 'Column id should be primary key on companies table');
--- ...more tests...
+  beforeEach(async () => {
+    await createTestData(db);
+  });
 
--- Clean up test data
--- ...cleanup code...
+  afterEach(async () => {
+    await db.query('ROLLBACK');
+  });
 
--- Finish the tests
-SELECT * FROM finish();
-
-ROLLBACK;
+  test('should validate entity creation', async () => {
+    const result = await db.query('SELECT * FROM entities WHERE id = $1', [testId]);
+    expect(result.rows).toHaveLength(1);
+    expect(result.rows[0].name).toBe('Test Entity');
+  });
+});
 ```
 
 ## Running Tests
 
-### Single Test File
-
-```bash
-pg_prove -d your_database_name tests/pgtap/schema/table_tests.sql
-```
-
 ### All Tests
 
 ```bash
-pg_prove -d your_database_name tests/pgtap/**/*.sql
+# From project root
+cd tests
+npm test
+
+# Or using the convenience scripts
+./run_tests.sh
+./run_tests.ps1
 ```
 
-### Continuous Integration
-
-Include test runs in the CI/CD pipeline:
+### Specific Test Categories
 
 ```bash
-pg_prove -d ci_test_database --recurse tests/pgtap/
+# Schema tests only
+npm test -- tests/schema
+
+# CRUD tests only
+npm test -- tests/crud
+
+# Security tests only
+npm test -- tests/security
+
+# Integration tests only
+npm test -- tests/integration
+
+# Performance tests only
+npm test -- tests/performance
 ```
 
-## Example Test Cases
+### Test Options
 
-### Schema Tests
+```bash
+# Run with coverage report
+npm test -- --coverage
 
-```sql
--- Example test for companies table
-SELECT has_table('companies');
-SELECT has_pk('companies');
-SELECT col_type_is('companies', 'name', 'character varying(255)', 'companies.name should be VARCHAR(255)');
-SELECT col_not_null('companies', 'name', 'companies.name should be NOT NULL');
-SELECT col_has_default('companies', 'created_at', 'companies.created_at should have default value');
-SELECT has_index('companies', 'companies_slug_idx', 'There should be an index on slug column');
+# Run in watch mode
+npm test -- --watch
+
+# Run with verbose output
+npm test -- --verbose
 ```
 
-### RLS Tests
+### Using the Shell Scripts
 
-```sql
--- Example test for company isolation
-SELECT set_config('app.current_user_id', user1_id::text, false);
-SELECT results_eq(
-    'SELECT COUNT(*) FROM companies',
-    ARRAY[1::bigint],
-    'User should only see their own company'
-);
+```bash
+# Run all tests
+./run_tests.sh
+
+# Run specific test type with coverage
+./run_tests.sh schema true
+
+# Run in watch mode
+./run_tests.sh all false true
 ```
 
-### CRUD Tests
+## Environment Configuration
 
-```sql
--- Example test for creating a new job
-SELECT lives_ok(
-    $$INSERT INTO jobs (company_id, title, description) VALUES (
-      (SELECT company_id FROM users WHERE id = current_user_id()),
-      'Software Engineer',
-      'Test job description'
-    )$$,
-    'Recruiter should be able to create a job for their company'
-);
-```
+Create a `.env` file in the tests directory:
 
-### Function Tests
+```env
+# Test Database Configuration
+TEST_DB_HOST=localhost
+TEST_DB_PORT=5432
+TEST_DB_NAME=job_matcher_test
+TEST_DB_USER=test_user
+TEST_DB_PASSWORD=test_password
+TEST_DB_SSL=false
 
-```sql
--- Example test for user management functions
-SELECT function_returns('public', 'current_user_id', ARRAY[]::text[], 'uuid', 'current_user_id() should return UUID type');
-SELECT is(
-    current_user_id()::text, 
-    test_user_id::text, 
-    'current_user_id() should return the ID set with set_current_user_id()'
-);
+# Test Configuration
+NODE_ENV=test
+LOG_LEVEL=error
 ```
 
 ## Test Data Management
 
-We'll use consistent test data:
+We use consistent test data management:
 
-1. Test fixtures created at the beginning of test files
-2. Each test runs in a transaction that's rolled back
-3. Helper functions to generate realistic test data
+1. **Test Database**: Separate database for testing
+2. **Transactions**: Each test runs in a transaction that's rolled back
+3. **Test Fixtures**: Helper functions generate realistic test data
+4. **Isolation**: Tests are isolated and can run in parallel
+
+### Test Data Helpers
+
+```javascript
+// Create test company
+const testCompany = await createTestCompany(db, {
+  name: 'Test Company',
+  slug: 'test-company'
+});
+
+// Create test user
+const testUser = await createTestUser(db, {
+  email: 'test@example.com',
+  company_id: testCompany.id,
+  role: 'recruiter'
+});
+
+// Create test job
+const testJob = await createTestJob(db, {
+  title: 'Software Engineer',
+  company_id: testCompany.id
+});
+```
+
+## Continuous Integration
+
+Include test runs in the CI/CD pipeline:
+
+```yaml
+# Example GitHub Actions workflow
+- name: Run Database Tests
+  run: |
+    cd tests
+    npm install
+    npm test -- --coverage
+  env:
+    TEST_DB_HOST: localhost
+    TEST_DB_NAME: job_matcher_test
+    TEST_DB_USER: postgres
+    TEST_DB_PASSWORD: postgres
+```
+
+## Best Practices
+
+1. **Test Isolation**: Each test should be independent
+2. **Descriptive Names**: Use clear, descriptive test names
+3. **Arrange-Act-Assert**: Structure tests clearly
+4. **Mock External Dependencies**: Use mocks for external services
+5. **Performance Awareness**: Keep tests fast and efficient
+
+## Debugging Tests
+
+```bash
+# Run specific test file
+npm test -- tests/schema/schema.test.js
+
+# Run with debug output
+DEBUG=* npm test
+
+# Run single test
+npm test -- --testNamePattern="should create company"
+```
+
+## Coverage Reporting
+
+Jest generates comprehensive coverage reports:
+
+```bash
+# Generate coverage report
+npm test -- --coverage
+
+# View coverage report
+open coverage/lcov-report/index.html
+```
 
 ## Conclusion
 
-This comprehensive testing strategy ensures our database maintains integrity, security, and performance while supporting all required business functions.
+This comprehensive testing strategy ensures our database maintains integrity, security, and performance while supporting all required business functions using modern JavaScript tooling.
 
 Regular test execution will catch regressions early and provide confidence in our database implementation.

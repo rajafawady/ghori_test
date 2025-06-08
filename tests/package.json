@@ -1,0 +1,48 @@
+{
+  "name": "cv-matcher-database",
+  "version": "1.0.0",
+  "description": "CV Matcher Database Schema and Tests",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:schema": "jest tests/schema",
+    "test:crud": "jest tests/crud", 
+    "test:security": "jest tests/security",
+    "test:integration": "jest tests/integration",
+    "test:performance": "jest tests/performance",
+    "setup:db": "node tests/setup/setupDatabase.js",
+    "migrate": "node scripts/migrate.js",
+    "seed": "node scripts/seed.js"
+  },
+  "keywords": ["database", "postgresql", "testing", "cv-matcher", "recruitment"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "pg": "^8.11.3",
+    "dotenv": "^16.3.1",
+    "@types/jest": "^29.5.8",
+    "@types/pg": "^8.10.7"
+  },
+  "dependencies": {
+    "pg": "^8.11.3",
+    "dotenv": "^16.3.1"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/setup/jest.setup.js"
+    ],
+    "collectCoverageFrom": [
+      "tests/**/*.js",
+      "!tests/setup/**",
+      "!tests/helpers/**"
+    ],
+    "testTimeout": 30000
+  }
+}

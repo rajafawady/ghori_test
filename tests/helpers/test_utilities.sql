@@ -1,4 +1,4 @@
--- Helper functions for pgTAP testing
+-- Helper functions for database testing
 -- This file contains utilities that help with testing
 
 -- Function to create test company

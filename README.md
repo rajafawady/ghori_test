@@ -10,7 +10,7 @@ This project implements a comprehensive, multi-tenant CV matching system for rec
 - **Complete candidate pipeline** from application through hiring with status tracking
 - **Team collaboration platform** with comments, tagging, and role-based access control
 - **Advanced search and filtering** with full-text search and saved search configurations
-- **Comprehensive testing suite** with pgTAP for schema, security, and integration testing
+- **Comprehensive testing suite** with Jest and Node.js for schema, security, and integration testing
 - **API usage tracking** with billing integration and overage management
 - **Performance monitoring** with metrics collection and analytics
 
@@ -106,7 +106,7 @@ The database implements enterprise-grade security with PostgreSQL Row Level Secu
 
 - PostgreSQL 12+ installed and running
 - PowerShell (Windows) or Bash (Unix/Linux)
-- pgTAP extension for testing (optional)
+- Node.js 16+ and npm for testing (optional)
 
 ### Database Setup
 
@@ -173,30 +173,137 @@ Each migration has corresponding seed data to populate sample records for testin
 
 ## Testing Strategy
 
-### Comprehensive Test Coverage with pgTAP
+### Comprehensive Test Coverage with Node.js/Jest
 
-The system includes extensive automated testing across multiple dimensions:
+The system includes extensive automated testing using modern JavaScript tooling:
 
 **Test Categories:**
 - **Schema Tests**: Database structure, constraints, indexes, and data types
-- **RLS Tests**: Company isolation and role-based access control validation
+- **Security Tests**: Company isolation, RLS policies, and access control validation
 - **CRUD Tests**: Create, Read, Update, Delete operations for all entities
-- **Function Tests**: Database functions and stored procedures validation
 - **Integration Tests**: End-to-end workflow testing (matching flow, candidate pipeline)
 - **Performance Tests**: Query performance benchmarks and scalability validation
 
 **Test Structure:**
 ```
 tests/
-├── pgtap/
-│   ├── schema/        # Database structure validation
-│   ├── rls/          # Security policy testing
-│   ├── crud/         # CRUD operation testing
-│   ├── functions/    # Database function testing
-│   ├── integration/  # Workflow testing
-│   └── performance/  # Performance benchmarks
-├── helpers/          # Test utilities and setup
-└── TEST_STRATEGY.md  # Detailed testing documentation
+├── package.json      # Dependencies and Jest configuration
+├── schema/           # Database structure validation
+├── security/         # Security policy testing
+├── crud/            # CRUD operation testing
+├── integration/     # Workflow testing
+├── performance/     # Performance benchmarks
+├── helpers/         # Test utilities and database helpers
+├── setup/           # Jest configuration
+└── TEST_STRATEGY.md # Detailed testing documentation
+```
+
+## Running Tests
+
+### Quick Start
+
+```powershell
+# Navigate to tests directory
+cd tests
+
+# Install dependencies
+npm install
+
+# Set up test environment
+cp .env.example .env
+# Edit .env with your test database credentials
+
+# Run all tests
+npm test
+```
+
+### Test Commands
+
+```powershell
+# Run all tests
+npm test
+
+# Run specific test categories
+npm test -- tests/schema
+npm test -- tests/crud
+npm test -- tests/security
+npm test -- tests/integration
+npm test -- tests/performance
+
+# Run with coverage report
+npm test -- --coverage
+
+# Run in watch mode (for development)
+npm test -- --watch
+
+# Run with verbose output
+npm test -- --verbose
+```
+
+### Using Convenience Scripts
+
+```powershell
+# Windows PowerShell
+.\run_tests.ps1                    # Run all tests
+.\run_tests.ps1 schema $true       # Run schema tests with coverage
+.\run_tests.ps1 all $false $true   # Run all tests in watch mode
+
+# Unix/Linux Bash
+./run_tests.sh                     # Run all tests
+./run_tests.sh schema true         # Run schema tests with coverage
+./run_tests.sh all false true      # Run all tests in watch mode
+```
+
+### Test Environment Setup
+
+1. **Create test database:**
+   ```sql
+   CREATE DATABASE job_matcher_test;
+   ```
+
+2. **Configure environment variables** in `tests/.env`:
+   ```env
+   TEST_DB_HOST=localhost
+   TEST_DB_PORT=5432
+   TEST_DB_NAME=job_matcher_test
+   TEST_DB_USER=your_test_user
+   TEST_DB_PASSWORD=your_test_password
+   TEST_DB_SSL=false
+   NODE_ENV=test
+   ```
+
+3. **Run migrations on test database:**
+   ```powershell
+   # From project root
+   .\scripts\setup_database.ps1 -Database "job_matcher_test"
+   ```
+
+### Test Coverage
+
+The testing framework validates:
+
+- ✅ **Database Schema**: All 16 tables, constraints, indexes, and relationships
+- ✅ **CRUD Operations**: Create, Read, Update, Delete for all entities
+- ✅ **Security Policies**: Row-Level Security and access controls
+- ✅ **Integration Workflows**: Complete user journeys and business processes
+- ✅ **Performance**: Query performance and scalability benchmarks
+
+### Continuous Integration
+
+Tests can be integrated into CI/CD pipelines:
+
+```yaml
+# Example GitHub Actions
+- name: Run Database Tests
+  run: |
+    cd tests
+    npm install
+    npm test -- --coverage
+  env:
+    TEST_DB_HOST: localhost
+    TEST_DB_NAME: job_matcher_test
+    TEST_DB_USER: postgres
+    TEST_DB_PASSWORD: postgres
 ```
 
 ## Usage Examples
