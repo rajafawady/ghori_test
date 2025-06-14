@@ -5,6 +5,57 @@ export type JobMatchStatus = 'applied' | 'interviewing' | 'offered' | 'rejected'
 export type ProcessingStatus = 'pending' | 'processing' | 'completed' | 'failed';
 export type CandidateStatus = 'new' | 'reviewed' | 'interviewed' | 'offered' | 'hired' | 'rejected';
 
+// Additional user management types
+export type UserStatus = 'active' | 'inactive' | 'suspended' | 'pending';
+export type UserPermission = 'read' | 'write' | 'delete' | 'admin';
+
+export interface UserProfile {
+  id: string;
+  user_id: string;
+  phone?: string;
+  bio?: string;
+  avatar_url?: string;
+  timezone?: string;
+  last_login?: Date;
+  login_count: number;
+  preferences?: Record<string, any>;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface UserActivity {
+  id: string;
+  user_id: string;
+  action: string;
+  resource_type: string;
+  resource_id?: string;
+  details?: Record<string, any>;
+  ip_address?: string;
+  user_agent?: string;
+  created_at: Date;
+  user?: User;
+}
+
+export interface UserInvitation {
+  id: string;
+  company_id: string;
+  email: string;
+  role: UserRole;
+  invited_by: string;
+  expires_at: Date;
+  accepted_at?: Date;
+  created_at: Date;
+  inviter?: User;
+  company?: Company;
+}
+
+export type Analysis = {
+  skills_match: number;
+  experience_match: number;
+  education_match: number;
+  salary_expectations: number;
+};
+
 export interface Company {
   id: string;
   name: string;
@@ -27,7 +78,11 @@ export interface User {
   created_at: Date;
   updated_at: Date;
   is_active: boolean;
+  status?: UserStatus;
+  last_login?: Date;
+  login_count?: number;
   company?: Company;
+  profile?: UserProfile;
 }
 
 export interface Job {
@@ -51,6 +106,8 @@ export interface Candidate {
   email: string;
   phone?: string;
   resume_url?: string;
+  skills?: string[];
+  experience_years?: number;
   created_at: Date;
   updated_at: Date;
   is_active: boolean;
@@ -62,11 +119,12 @@ export interface JobMatch {
   candidate_id: string;
   status: JobMatchStatus;
   score?: number;
-  analysis?: any;
+  analysis?: Analysis;
   created_at: Date;
   updated_at: Date;
   job?: Job;
   candidate?: Candidate;
+  ai_summary?: string;
 }
 
 export interface AIProcessingQueue {
@@ -81,77 +139,49 @@ export interface AIProcessingQueue {
   candidate?: Candidate;
 }
 
-export interface AuditLog {
-  id: string;
-  user_id: string;
-  action: string;
-  entity: string;
-  entity_id: string;
-  details?: any;
-  created_at: Date;
-  user?: User;
-}
-
 export interface BatchUpload {
   id: string;
   company_id: string;
   job_id: string;
   file_name: string;
+  file_size?: number;
   uploaded_by: string;
   status: ProcessingStatus;
+  total_candidates?: number;
+  processed_candidates?: number;
+  successful_candidates?: number;
+  failed_candidates?: number;
+  error_message?: string;
   created_at: Date;
   updated_at: Date;
-}
-
-export interface SavedSearch {
-  id: string;
-  user_id: string;
-  name: string;
-  query: any;
-  created_at: Date;
-  updated_at: Date;
-  user?: User;
-}
-
-export interface CandidateTag {
-  id: string;
-  candidate_id: string;
-  tag: string;
-  created_at: Date;
-  candidate?: Candidate;
-}
-
-export interface ProcessingMetric {
-  id: string;
-  job_id: string;
-  candidate_id: string;
-  metric: string;
-  value: number;
-  created_at: Date;
   job?: Job;
-  candidate?: Candidate;
+  uploader?: User;
+  batch_candidates?: BatchCandidate[];
 }
 
-export interface CandidateStatusHistory {
+export interface BatchCandidate {
   id: string;
-  candidate_id: string;
-  status: CandidateStatus;
-  updated_by: string;
+  batch_upload_id: string;
+  candidate_id?: string;
+  file_name: string;
+  status: ProcessingStatus;
+  error_message?: string;
+  ai_processing_id?: string;
+  created_at: Date;
   updated_at: Date;
   candidate?: Candidate;
-  updater?: User;
+  ai_processing?: AIProcessingQueue;
 }
 
-export interface CandidateComment {
-  id: string;
-  candidate_id: string;
-  user_id: string;
-  comment: string;
-  created_at: Date;
-  candidate?: Candidate;
-  user?: User;
+export interface BatchUploadSummary {
+  total_uploads: number;
+  pending_uploads: number;
+  processing_uploads: number;
+  completed_uploads: number;
+  failed_uploads: number;
+  total_candidates_processed: number;
+  recent_uploads: BatchUpload[];
 }
-
 export interface APIUsage {
   id: string;
   company_id: string;

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { LoadingPage } from '@/components/ui/loader/loading-page';
 import { LoadingCard } from '@/components/ui/loader/loading-card';
 import { LoadingButton } from '@/components/ui/loader/loading-button';
+import { AdminGuard } from '@/components/admin/AdminGuard';
 import { useJobs } from '@/hooks/use-jobs';
 import { Job } from '@/types/index';
 import { JobList } from './JobList';
@@ -68,8 +69,8 @@ export function JobManagement() {
     setSelectedJob(job);
   }, []);
 
-  const handleSearchQueryChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+  const handleSearchQueryChange = useCallback((query:string) => {
+    setSearchQuery(query);
   }, []);
 
   const handleSearchKeyPress = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -98,33 +99,15 @@ export function JobManagement() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Job Management</h1>
-        <Button onClick={handleCreateJob} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Create Job
-        </Button>
-      </div>
-
-      <div className="flex items-center space-x-4">
-        <div className="flex-1 flex items-center space-x-2">
-          <Input
-            placeholder="Search jobs..."
-            value={searchQuery}
-            onChange={handleSearchQueryChange}
-            onKeyPress={handleSearchKeyPress}
-          />
-          <LoadingButton 
-            onClick={handleSearch} 
-            variant="outline" 
-            size="icon"
-            loading={searching}
-          >
-            <Search className="w-4 h-4" />
-          </LoadingButton>
+    <AdminGuard requireRole="recruiter" message="You need recruiter or admin access to manage jobs.">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Job Management</h1>
+          <Button onClick={handleCreateJob} className="flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            Create Job
+          </Button>
         </div>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
@@ -136,6 +119,8 @@ export function JobManagement() {
               onJobSelect={handleJobSelect}
               onJobEdit={handleEditJob}
               selectedJobId={selectedJob?.id}
+              onSearch={handleSearchQueryChange}
+              searchTerm={searchQuery}
             />
           )}
         </div>
@@ -170,5 +155,6 @@ export function JobManagement() {
         </div>
       )}
     </div>
+    </AdminGuard>
   );
 }

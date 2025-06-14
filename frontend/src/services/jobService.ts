@@ -1,15 +1,17 @@
-import { Job } from '@/types/index';
-import { mockJobs, mockCompanies } from '@/lib/mockData';
-
-let jobs = [...mockJobs];
+import { Job, Company } from '@/types/index';
+import { storage, COLLECTIONS } from '@/lib/storage';
+import { v4 as uuidv4 } from 'uuid';
 
 export const jobService = {
   async getAll(): Promise<Job[]> {
     return new Promise((resolve) => {
       setTimeout(() => {
+        const jobs = storage.getCollection<Job>(COLLECTIONS.JOBS);
+        const companies = storage.getCollection<Company>(COLLECTIONS.COMPANIES);
+        
         const jobsWithCompanies = jobs.map(job => ({
           ...job,
-          company: mockCompanies.find(c => c.id === job.company_id)
+          company: companies.find(c => c.id === job.company_id)
         }));
         resolve(jobsWithCompanies);
       }, 100);
@@ -19,11 +21,12 @@ export const jobService = {
   async getById(id: string): Promise<Job | null> {
     return new Promise((resolve) => {
       setTimeout(() => {
-        const job = jobs.find(j => j.id === id);
+        const job = storage.getFromCollection<Job>(COLLECTIONS.JOBS, id);
         if (job) {
+          const companies = storage.getCollection<Company>(COLLECTIONS.COMPANIES);
           const jobWithCompany = {
             ...job,
-            company: mockCompanies.find(c => c.id === job.company_id)
+            company: companies.find(c => c.id === job.company_id)
           };
           resolve(jobWithCompany);
         } else {
@@ -36,12 +39,16 @@ export const jobService = {
   async getByCompany(companyId: string): Promise<Job[]> {
     return new Promise((resolve) => {
       setTimeout(() => {
-        const companyJobs = jobs
-          .filter(j => j.company_id === companyId)
-          .map(job => ({
-            ...job,
-            company: mockCompanies.find(c => c.id === job.company_id)
-          }));
+        const jobs = storage.searchCollection<Job>(
+          COLLECTIONS.JOBS, 
+          job => job.company_id === companyId
+        );
+        const companies = storage.getCollection<Company>(COLLECTIONS.COMPANIES);
+        
+        const companyJobs = jobs.map(job => ({
+          ...job,
+          company: companies.find(c => c.id === job.company_id)
+        }));
         resolve(companyJobs);
       }, 100);
     });
@@ -52,11 +59,11 @@ export const jobService = {
       setTimeout(() => {
         const newJob: Job = {
           ...job,
-          id: `job-${Date.now()}`,
+          id: uuidv4(),
           created_at: new Date(),
           updated_at: new Date()
         };
-        jobs.push(newJob);
+        storage.addToCollection(COLLECTIONS.JOBS, newJob);
         resolve(newJob);
       }, 200);
     });
@@ -65,17 +72,8 @@ export const jobService = {
   async update(id: string, updates: Partial<Job>): Promise<Job | null> {
     return new Promise((resolve) => {
       setTimeout(() => {
-        const index = jobs.findIndex(j => j.id === id);
-        if (index !== -1) {
-          jobs[index] = { 
-            ...jobs[index], 
-            ...updates, 
-            updated_at: new Date() 
-          };
-          resolve(jobs[index]);
-        } else {
-          resolve(null);
-        }
+        const updatedJob = storage.updateInCollection<Job>(COLLECTIONS.JOBS, id, updates);
+        resolve(updatedJob);
       }, 200);
     });
   },
@@ -83,13 +81,8 @@ export const jobService = {
   async delete(id: string): Promise<boolean> {
     return new Promise((resolve) => {
       setTimeout(() => {
-        const index = jobs.findIndex(j => j.id === id);
-        if (index !== -1) {
-          jobs.splice(index, 1);
-          resolve(true);
-        } else {
-          resolve(false);
-        }
+        const deleted = storage.removeFromCollection<Job>(COLLECTIONS.JOBS, id);
+        resolve(deleted);
       }, 200);
     });
   },
@@ -103,7 +96,7 @@ export const jobService = {
   }): Promise<Job[]> {
     return new Promise((resolve) => {
       setTimeout(() => {
-        let filteredJobs = [...jobs];
+        let filteredJobs = storage.getCollection<Job>(COLLECTIONS.JOBS);
 
         if (query.keywords && query.keywords.length > 0) {
           filteredJobs = filteredJobs.filter(job => 
@@ -138,9 +131,10 @@ export const jobService = {
           );
         }
 
+        const companies = storage.getCollection<Company>(COLLECTIONS.COMPANIES);
         const jobsWithCompanies = filteredJobs.map(job => ({
           ...job,
-          company: mockCompanies.find(c => c.id === job.company_id)
+          company: companies.find(c => c.id === job.company_id)
         }));
 
         resolve(jobsWithCompanies);

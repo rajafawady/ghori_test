@@ -2,9 +2,9 @@
 
 import { useParams } from 'next/navigation';
 import { useAppContext } from '@/contexts/AppContext';
+import { AdminGuard } from '@/components/admin/AdminGuard';
 import { BatchUpload } from '@/components/candidates/BatchUpload';
 import { BatchUploadList } from '@/components/candidates/BatchUploadList';
-import { MatchingCandidates } from '@/components/candidates/MatchingCandidates';
 import { Toaster } from '@/components/ui/toaster';
 
 export function BatchUploadPageClient() {
@@ -18,14 +18,15 @@ export function BatchUploadPageClient() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
-      <h1 className="text-3xl font-bold">Batch Upload CVs for {job.title}</h1>
-      <div className="grid gap-8">
-        <BatchUpload jobId={jobId} />
-        <BatchUploadList jobId={jobId} />
-        <MatchingCandidates jobId={jobId} />
+    <AdminGuard requireRole="recruiter" message="You need recruiter or admin access to upload candidates.">
+      <div className="container mx-auto py-8 space-y-8">
+        <h1 className="text-3xl font-bold">Batch Upload CVs for {job.title}</h1>
+        <div className="grid gap-8">
+          <BatchUpload jobId={jobId} />
+          <BatchUploadList jobId={jobId} />
+        </div>
+        <Toaster />
       </div>
-      <Toaster />
-    </div>
+    </AdminGuard>
   );
 } 

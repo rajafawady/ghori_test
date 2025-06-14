@@ -1,13 +1,13 @@
 "use client";
-
 import { useState, useRef } from 'react';
 import { Job } from '@/types/index';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useJobs } from '@/hooks/use-jobs';
 import { useRouter } from 'next/navigation';
 import { batchUploadService } from '@/services/batchUploadService';
 import { useToast } from '@/hooks/use-toast';
+import { formatDate } from '@/lib/utils';
+import { databaseResetService } from '@/lib/databaseReset';
 import { 
   MapPin, 
   DollarSign, 
@@ -18,7 +18,8 @@ import {
   Clock,
   Users,
   Upload,
-  FileText
+  History,
+  Database
 } from 'lucide-react';
 
 interface JobDetailsProps {
@@ -60,21 +61,16 @@ export function JobDetails({ job, onEdit, onDelete }: JobDetailsProps) {
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    const file = files[0];
-    setIsUploading(true);
-    try {
+    if (!files || files.length === 0) return;    const file = files[0];
+    setIsUploading(true);    try {
       await batchUploadService.createBatchUpload(
         'company1', // TODO: Get from auth context
+        job.id,
         file.name,
         'user1', // TODO: Get from auth context
-        job.id
+        file.size
       );
-      // toast({
-      //   title: 'Success',
-      //   description: 'File upload started successfully',
-      // });
+      
       // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -85,9 +81,19 @@ export function JobDetails({ job, onEdit, onDelete }: JobDetailsProps) {
         title: 'Error',
         description: 'Failed to upload file',
         variant: 'destructive',
-      });
-    } finally {
+      });    } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleQuickReset = () => {
+    if (window.confirm('⚠️ This will reset ALL database data. Are you sure?')) {
+      databaseResetService.resetDatabase();
+      toast({
+        title: 'Database Reset',
+        description: 'Database has been reset with fresh data. Page will reload...',
+      });
+      setTimeout(() => window.location.reload(), 1000);
     }
   };
 
@@ -148,8 +154,7 @@ export function JobDetails({ job, onEdit, onDelete }: JobDetailsProps) {
           )}
           
           <div className="flex items-center text-gray-600">
-            <Calendar className="w-4 h-4 mr-2" />
-            Posted {job.created_at.toLocaleDateString()}
+            <Calendar className="w-4 h-4 mr-2" />            Posted {formatDate(job.created_at)}
           </div>
         </div>
 
@@ -164,8 +169,7 @@ export function JobDetails({ job, onEdit, onDelete }: JobDetailsProps) {
         </div>
       </div>
 
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="p-6">        <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold">Job Description</h3>
           <div className="flex space-x-2">
             <Button
@@ -176,8 +180,14 @@ export function JobDetails({ job, onEdit, onDelete }: JobDetailsProps) {
             >
               <Upload className="w-4 h-4 mr-2" />
               {isUploading ? 'Uploading...' : 'Upload CVs'}
-            </Button>
-            <Button
+            </Button>            <Button
+              variant="outline"
+              onClick={() => router.push(`/uploads/job/${job.id}`)}
+              className="flex items-center"
+            >
+              <History className="w-4 h-4 mr-2" />
+              Upload History
+            </Button>            <Button
               variant="outline"
               onClick={() => router.push(`/jobs/${job.id}/candidates`)}
               className="flex items-center"

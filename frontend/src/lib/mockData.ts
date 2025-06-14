@@ -1,7 +1,6 @@
 import { 
   Company, User, Job, Candidate, JobMatch, AIProcessingQueue, 
-  AuditLog, BatchUpload, SavedSearch, CandidateTag, ProcessingMetric,
-  CandidateStatusHistory, CandidateComment, APIUsage
+  UserActivity, BatchUpload, APIUsage
 } from '@/types/index';
 
 // Utility function to generate UUIDs
@@ -24,28 +23,6 @@ export const mockCompanies: Company[] = [
     max_jobs_per_month: 100,
     created_at: new Date('2023-01-15'),
     updated_at: new Date('2024-01-15'),
-    is_active: true
-  },
-  {
-    id: 'comp-2',
-    name: 'StartupHub Inc',
-    slug: 'startupHub-inc',
-    subscription_plan: 'professional',
-    max_users: 25,
-    max_jobs_per_month: 50,
-    created_at: new Date('2023-06-10'),
-    updated_at: new Date('2024-06-10'),
-    is_active: true
-  },
-  {
-    id: 'comp-3',
-    name: 'SmallBiz Ltd',
-    slug: 'smallbiz-ltd',
-    subscription_plan: 'starter',
-    max_users: 5,
-    max_jobs_per_month: 10,
-    created_at: new Date('2023-09-20'),
-    updated_at: new Date('2024-09-20'),
     is_active: true
   }
 ];
@@ -185,7 +162,7 @@ export const mockCandidates: Candidate[] = [
     full_name: 'Alice Thompson',
     email: 'alice.thompson@email.com',
     phone: '+1-555-0101',
-    resume_url: 'https://tmpfiles.org/dl/1803766/convert.pdf',
+    resume_url: '/resumes/alice-thompson.pdf',
     created_at: new Date('2024-01-05'),
     updated_at: new Date('2024-01-05'),
     is_active: true
@@ -348,26 +325,6 @@ export const mockAIProcessingQueue: AIProcessingQueue[] = [
   }
 ];
 
-export const mockAuditLogs: AuditLog[] = [
-  {
-    id: 'audit-1',
-    user_id: 'user-1',
-    action: 'create_job',
-    entity: 'job',
-    entity_id: 'job-1',
-    details: { title: 'Senior Software Engineer' },
-    created_at: new Date('2024-01-10')
-  },
-  {
-    id: 'audit-2',
-    user_id: 'user-2',
-    action: 'update_match_status',
-    entity: 'job_match',
-    entity_id: 'match-1',
-    details: { old_status: 'applied', new_status: 'interviewing' },
-    created_at: new Date('2024-01-20')
-  }
-];
 
 export const mockBatchUploads: BatchUpload[] = [
   {
@@ -389,102 +346,6 @@ export const mockBatchUploads: BatchUpload[] = [
     uploaded_by: 'user-4',
     created_at: new Date('2024-02-10'),
     updated_at: new Date('2024-02-10')
-  }
-];
-
-export const mockSavedSearches: SavedSearch[] = [
-  {
-    id: 'search-1',
-    user_id: 'user-2',
-    name: 'Senior Engineers',
-    query: {
-      keywords: ['senior', 'engineer'],
-      location: 'San Francisco',
-      salary_min: 100000
-    },
-    created_at: new Date('2024-01-05'),
-    updated_at: new Date('2024-01-05')
-  }
-];
-
-export const mockCandidateTags: CandidateTag[] = [
-  {
-    id: 'tag-1',
-    candidate_id: 'cand-1',
-    tag: 'React Expert',
-    created_at: new Date('2024-01-11')
-  },
-  {
-    id: 'tag-2',
-    candidate_id: 'cand-1',
-    tag: 'Senior Level',
-    created_at: new Date('2024-01-11')
-  },
-  {
-    id: 'tag-3',
-    candidate_id: 'cand-3',
-    tag: 'Product Management',
-    created_at: new Date('2024-01-16')
-  }
-];
-
-export const mockProcessingMetrics: ProcessingMetric[] = [
-  {
-    id: 'metric-1',
-    job_id: 'job-1',
-    candidate_id: 'cand-1',
-    metric: 'cv_parsing_time',
-    value: 2.5,
-    created_at: new Date('2024-01-11')
-  },
-  {
-    id: 'metric-2',
-    job_id: 'job-1',
-    candidate_id: 'cand-1',
-    metric: 'matching_score_calculation',
-    value: 0.89,
-    created_at: new Date('2024-01-11')
-  }
-];
-
-export const mockCandidateStatusHistory: CandidateStatusHistory[] = [
-  {
-    id: 'status-1',
-    candidate_id: 'cand-1',
-    status: 'new',
-    updated_by: 'user-2',
-    updated_at: new Date('2024-01-05')
-  },
-  {
-    id: 'status-2',
-    candidate_id: 'cand-1',
-    status: 'reviewed',
-    updated_by: 'user-2',
-    updated_at: new Date('2024-01-11')
-  },
-  {
-    id: 'status-3',
-    candidate_id: 'cand-1',
-    status: 'interviewed',
-    updated_by: 'user-1',
-    updated_at: new Date('2024-01-20')
-  }
-];
-
-export const mockCandidateComments: CandidateComment[] = [
-  {
-    id: 'comment-1',
-    candidate_id: 'cand-1',
-    user_id: 'user-2',
-    comment: 'Strong technical background, especially in React and Node.js. Would be a good fit for our senior engineer position.',
-    created_at: new Date('2024-01-11')
-  },
-  {
-    id: 'comment-2',
-    candidate_id: 'cand-1',
-    user_id: 'user-1',
-    comment: 'Interview went well. Candidate showed deep understanding of system architecture.',
-    created_at: new Date('2024-01-20')
   }
 ];
 

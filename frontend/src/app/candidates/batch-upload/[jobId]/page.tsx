@@ -1,11 +1,12 @@
 import { BatchUploadPageClient } from './BatchUploadPageClient';
 
 interface BatchUploadPageProps {
-  params: {
+  params: Promise<{
     jobId: string;
-  };
+  }>;
 }
 
-export default function BatchUploadPage({ params }: BatchUploadPageProps) {
-  return <BatchUploadPageClient jobId={params.jobId} />;
-} 
+export default async function BatchUploadPage({ params }: BatchUploadPageProps) {
+  const { jobId } = await params;
+  return <BatchUploadPageClient jobId={jobId} />;
+}

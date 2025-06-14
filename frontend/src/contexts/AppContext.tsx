@@ -1,7 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { Company, User, Job, Candidate, JobMatch } from '@/types/index';
+import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import { Company, User, Job, Candidate, JobMatch, BatchUpload } from '@/types/index';
+import { initializeStorage } from '@/lib/initStorage';
 
 interface AppState {
   currentUser: User | null;
@@ -9,13 +10,16 @@ interface AppState {
   jobs: Job[];
   candidates: Candidate[];
   matches: JobMatch[];
+  batchUploads: BatchUpload[];
   loading: boolean;
   error: string | null;
+  initialized: boolean;
 }
 
 type AppAction = 
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'SET_INITIALIZED'; payload: boolean }
   | { type: 'SET_CURRENT_USER'; payload: User | null }
   | { type: 'SET_CURRENT_COMPANY'; payload: Company | null }
   | { type: 'SET_JOBS'; payload: Job[] }
@@ -27,7 +31,11 @@ type AppAction =
   | { type: 'UPDATE_CANDIDATE'; payload: Candidate }
   | { type: 'DELETE_CANDIDATE'; payload: string }
   | { type: 'SET_MATCHES'; payload: JobMatch[] }
-  | { type: 'UPDATE_MATCH'; payload: JobMatch };
+  | { type: 'UPDATE_MATCH'; payload: JobMatch }
+  | { type: 'SET_BATCH_UPLOADS'; payload: BatchUpload[] }
+  | { type: 'ADD_BATCH_UPLOAD'; payload: BatchUpload }
+  | { type: 'UPDATE_BATCH_UPLOAD'; payload: BatchUpload }
+  | { type: 'DELETE_BATCH_UPLOAD'; payload: string };
 
 const initialState: AppState = {
   currentUser: null,
@@ -35,8 +43,10 @@ const initialState: AppState = {
   jobs: [],
   candidates: [],
   matches: [],
+  batchUploads: [],
   loading: false,
   error: null,
+  initialized: false,
 };
 
 function appReducer(state: AppState, action: AppAction): AppState {
@@ -45,6 +55,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, loading: action.payload };
     case 'SET_ERROR':
       return { ...state, error: action.payload };
+    case 'SET_INITIALIZED':
+      return { ...state, initialized: action.payload };
     case 'SET_CURRENT_USER':
       return { ...state, currentUser: action.payload };
     case 'SET_CURRENT_COMPANY':
@@ -88,6 +100,22 @@ function appReducer(state: AppState, action: AppAction): AppState {
           match.id === action.payload.id ? action.payload : match
         ) 
       };
+    case 'SET_BATCH_UPLOADS':
+      return { ...state, batchUploads: action.payload };
+    case 'ADD_BATCH_UPLOAD':
+      return { ...state, batchUploads: [...state.batchUploads, action.payload] };
+    case 'UPDATE_BATCH_UPLOAD':
+      return { 
+        ...state, 
+        batchUploads: state.batchUploads.map(upload => 
+          upload.id === action.payload.id ? action.payload : upload
+        ) 
+      };
+    case 'DELETE_BATCH_UPLOAD':
+      return { 
+        ...state, 
+        batchUploads: state.batchUploads.filter(upload => upload.id !== action.payload) 
+      };
     default:
       return state;
   }
@@ -100,6 +128,54 @@ const AppContext = createContext<{
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
+
+  // Initialize storage on mount
+  useEffect(() => {
+    const initApp = async () => {
+      try {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        
+        // Initialize persistent storage with seed data
+        initializeStorage();
+        
+        // Set a default company and user for the demo
+        const mockUser: User = {
+          id: 'user1',
+          company_id: 'company1',
+          email: 'admin@example.com',
+          password_hash: '',
+          full_name: 'Admin User',
+          role: 'admin',
+          created_at: new Date(),
+          updated_at: new Date(),
+          is_active: true
+        };
+
+        const mockCompany: Company = {
+          id: 'company1',
+          name: 'Demo Company',
+          slug: 'demo-company',
+          subscription_plan: 'professional',
+          max_users: 10,
+          max_jobs_per_month: 50,
+          created_at: new Date(),
+          updated_at: new Date(),
+          is_active: true
+        };
+
+        dispatch({ type: 'SET_CURRENT_USER', payload: mockUser });
+        dispatch({ type: 'SET_CURRENT_COMPANY', payload: mockCompany });
+        dispatch({ type: 'SET_INITIALIZED', payload: true });
+      } catch (error) {
+        console.error('Failed to initialize app:', error);
+        dispatch({ type: 'SET_ERROR', payload: 'Failed to initialize application' });
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    };
+
+    initApp();
+  }, []);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>

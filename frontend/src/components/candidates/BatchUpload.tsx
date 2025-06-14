@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { batchUploadService } from '@/services/batchUploadService';
+import { useAppContext } from '@/contexts/AppContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface BatchUploadProps {
@@ -14,6 +15,7 @@ interface BatchUploadProps {
 export function BatchUpload({ jobId }: BatchUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const { state, dispatch } = useAppContext();
   const { toast } = useToast();
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -60,7 +62,19 @@ export function BatchUpload({ jobId }: BatchUploadProps) {
       setProgress(0);
 
       try {
-        // Simulate upload progress
+        // Create batch upload record - the service handles all simulation
+        const upload = await batchUploadService.createBatchUpload(
+          state.currentCompany?.id || 'company1',
+          jobId,
+          file.name,
+          state.currentUser?.id || 'user1',
+          file.size
+        );
+
+        // Add to app state
+        dispatch({ type: 'ADD_BATCH_UPLOAD', payload: upload });
+
+        // Simulate upload progress for UI feedback only
         const progressInterval = setInterval(() => {
           setProgress(prev => {
             if (prev >= 90) {
@@ -71,24 +85,23 @@ export function BatchUpload({ jobId }: BatchUploadProps) {
           });
         }, 500);
 
-        // Create batch upload
-        const upload = await batchUploadService.createBatchUpload(
-          'company1', // TODO: Get from auth context
-          file.name,
-          'user1', // TODO: Get from auth context
-          jobId
-        );
-
-        clearInterval(progressInterval);
-        setProgress(100);
+        // Complete the UI progress - the service handles all backend simulation
+        setTimeout(() => {
+          clearInterval(progressInterval);
+          setProgress(100);
+          
+          toast({
+            title: 'Upload Processing Started',
+            description: `Processing ${upload.file_name} with ${upload.total_candidates} candidates. Watch the progress in Upload History.`,
+          });
+        }, 2000);
 
         toast({
-          title: 'Upload Successful',
-          description: file.type === 'application/zip' 
-            ? 'Your ZIP file is being processed. PDFs will be extracted and analyzed.'
-            : 'Your file is being processed. You will be notified when complete.',
+          title: 'Upload Initiated',
+          description: 'Your file upload has started and will be processed automatically.',
         });
       } catch (error) {
+        console.error('Upload error:', error);
         toast({
           title: 'Upload Failed',
           description: 'There was an error uploading your file. Please try again.',

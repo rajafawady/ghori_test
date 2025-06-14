@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Job, EmploymentType } from '@/types/index';
 import { useJobs } from '@/hooks/use-jobs';
+import { useAppContext } from '@/contexts/AppContext';
 import { X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface JobFormProps {
   job?: Job | null;
@@ -15,6 +17,8 @@ interface JobFormProps {
 
 export function JobForm({ job, onSave, onCancel }: JobFormProps) {
   const { createJob, updateJob } = useJobs();
+  const { state } = useAppContext();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -22,7 +26,7 @@ export function JobForm({ job, onSave, onCancel }: JobFormProps) {
     employment_type: 'full_time' as EmploymentType,
     salary_min: '',
     salary_max: '',
-    company_id: 'comp-1', // Default company for demo
+    company_id: state.currentCompany?.id || '',
   });
 
   useEffect(() => {
@@ -42,23 +46,52 @@ export function JobForm({ job, onSave, onCancel }: JobFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!formData.title.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Job title is required",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!formData.description.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Job description is required",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const jobData = {
         ...formData,
         salary_min: formData.salary_min ? parseInt(formData.salary_min) : undefined,
         salary_max: formData.salary_max ? parseInt(formData.salary_max) : undefined,
         is_active: true,
-      };
-
-      if (job) {
+      };      if (job) {
         await updateJob(job.id, jobData);
+        toast({
+          title: "Success",
+          description: "Job updated successfully",
+        });
       } else {
         await createJob(jobData);
+        toast({
+          title: "Success",
+          description: "Job created successfully",
+        });
       }
       
       onSave();
     } catch (error) {
       console.error('Failed to save job:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save job. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
