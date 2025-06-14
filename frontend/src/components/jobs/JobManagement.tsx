@@ -1,17 +1,15 @@
 "use client";
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { LoadingPage } from '@/components/ui/loader/loading-page';
 import { LoadingCard } from '@/components/ui/loader/loading-card';
-import { LoadingButton } from '@/components/ui/loader/loading-button';
 import { AdminGuard } from '@/components/admin/AdminGuard';
 import { useJobs } from '@/hooks/use-jobs';
 import { Job } from '@/types/index';
 import { JobList } from './JobList';
 import { JobForm } from './JobForm';
 import { JobDetails } from './JobDetails';
-import { Plus, Search } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 export function JobManagement() {
   const { jobs, loading, searchJobs } = useJobs();

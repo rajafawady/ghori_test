@@ -1,7 +1,7 @@
 import { Company } from '@/types/index';
 import { mockCompanies } from '@/lib/mockData';
 
-let companies = [...mockCompanies];
+const companies = [...mockCompanies];
 
 export const companyService = {
   async getAll(): Promise<Company[]> {

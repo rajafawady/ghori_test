@@ -12,9 +12,7 @@ import {
   Database, 
   Download,
   Trash2,
-  RefreshCw,
-  CheckCircle,
-  XCircle
+  RefreshCw
 } from 'lucide-react';
 
 export function DatabaseReset() {
