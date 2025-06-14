@@ -196,15 +196,6 @@ export function UserDialog({ isOpen, onClose, user, onSave }: UserDialogProps) {
                 </p>
               </div>
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-8 w-8 p-0"
-            >
-              <X className="w-4 h-4" />
-            </Button>
           </div>
         </DialogHeader>
 

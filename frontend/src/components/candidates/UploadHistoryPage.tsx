@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,8 +31,7 @@ interface UploadHistoryPageProps {
 }
 
 export function UploadHistoryPage({ companyId = 'company1', jobId }: UploadHistoryPageProps) {
-  const [uploads, setUploads] = useState<BatchUpload[]>([]);
-  const [summary, setSummary] = useState<BatchUploadSummary | null>(null);
+  const [uploads, setUploads] = useState<BatchUpload[]>([]);  const [summary, setSummary] = useState<BatchUploadSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<ProcessingStatus | 'all'>('all');
   const { toast } = useToast();
@@ -40,25 +39,9 @@ export function UploadHistoryPage({ companyId = 'company1', jobId }: UploadHisto
   const searchParams = useSearchParams();
   
   // Get jobId from URL params if not provided as prop
-  const effectiveJobId = jobId || searchParams.get('jobId') || undefined;  useEffect(() => {
-    loadData();
-    
-    // Subscribe to real-time updates
-    const unsubscribe = batchUploadService.subscribeToUploads((updatedUploads) => {
-      let filteredUploads = updatedUploads.filter(upload => upload.company_id === companyId);
-      
-      // Filter by job if specified
-      if (effectiveJobId) {
-        filteredUploads = filteredUploads.filter(upload => upload.job_id === effectiveJobId);
-      }
-      
-      setUploads(filteredUploads);
-    });
+  const effectiveJobId = jobId || searchParams.get('jobId') || undefined;
 
-    return unsubscribe;
-  }, [companyId, effectiveJobId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const [uploadsData, summaryData] = await Promise.all([
@@ -76,7 +59,25 @@ export function UploadHistoryPage({ companyId = 'company1', jobId }: UploadHisto
     } finally {
       setLoading(false);
     }
-  };
+  }, [companyId, effectiveJobId, toast]);
+
+  useEffect(() => {
+    loadData();
+    
+    // Subscribe to real-time updates
+    const unsubscribe = batchUploadService.subscribeToUploads((updatedUploads) => {
+      let filteredUploads = updatedUploads.filter(upload => upload.company_id === companyId);
+      
+      // Filter by job if specified
+      if (effectiveJobId) {
+        filteredUploads = filteredUploads.filter(upload => upload.job_id === effectiveJobId);
+      }
+      
+      setUploads(filteredUploads);
+    });
+
+    return unsubscribe;
+  }, [companyId, effectiveJobId, loadData]);
 
   const handleRetry = async (id: string) => {
     try {

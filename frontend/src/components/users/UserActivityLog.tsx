@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -91,19 +91,14 @@ const mockActivities: UserActivity[] = [
   }
 ];
 
-export function UserActivityLog({ userId, showUserColumn = true, maxHeight = "600px" }: UserActivityLogProps) {
-  const [activities, setActivities] = useState<UserActivity[]>([]);
+export function UserActivityLog({ userId, showUserColumn = true, maxHeight = "600px" }: UserActivityLogProps) {  const [activities, setActivities] = useState<UserActivity[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [actionFilter, setActionFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
 
-  useEffect(() => {
-    loadData();
-  }, [userId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -116,8 +111,7 @@ export function UserActivityLog({ userId, showUserColumn = true, maxHeight = "60
         let filteredActivities = [...mockActivities];
         
         if (userId) {
-          filteredActivities = filteredActivities.filter(activity => activity.user_id === userId);
-        }
+          filteredActivities = filteredActivities.filter(activity => activity.user_id === userId);        }
         
         // Add user data to activities
         const activitiesWithUsers = filteredActivities.map(activity => ({
@@ -132,7 +126,11 @@ export function UserActivityLog({ userId, showUserColumn = true, maxHeight = "60
       console.error('Failed to load activity data:', error);
       setLoading(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const getActionIcon = (action: string) => {
     switch (action.toLowerCase()) {

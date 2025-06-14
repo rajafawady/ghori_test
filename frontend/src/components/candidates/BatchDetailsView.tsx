@@ -31,15 +31,10 @@ interface BatchDetailsViewProps {
 export function BatchDetailsView({ batchId }: BatchDetailsViewProps) {
   const [batchUpload, setBatchUpload] = useState<BatchUpload | null>(null);
   const [batchCandidates, setBatchCandidates] = useState<BatchCandidate[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);  const { toast } = useToast();
   const router = useRouter();
 
-  useEffect(() => {
-    loadBatchDetails();
-  }, [batchId]);
-
-  const loadBatchDetails = async () => {
+  const loadBatchDetails = useCallback(async () => {
     try {
       setLoading(true);      const [batchData, candidatesData] = await Promise.all([
         batchUploadService.getBatchUploadById(batchId),
@@ -56,7 +51,11 @@ export function BatchDetailsView({ batchId }: BatchDetailsViewProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [batchId, toast]);
+
+  useEffect(() => {
+    loadBatchDetails();
+  }, [loadBatchDetails]);
 
   const handleRetry = async () => {
     if (!batchUpload) return;

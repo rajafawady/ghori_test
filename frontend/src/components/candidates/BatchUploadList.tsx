@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,22 +26,10 @@ interface BatchUploadListProps {
 
 export function BatchUploadList({ jobId }: BatchUploadListProps) {
   const [uploads, setUploads] = useState<BatchUpload[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);  const { toast } = useToast();
   const router = useRouter();
 
-  useEffect(() => {
-    loadUploads();
-    
-    // Subscribe to real-time updates
-    const unsubscribe = batchUploadService.subscribeToUploads((updatedUploads) => {
-      const filteredUploads = updatedUploads.filter(upload => upload.job_id === jobId);
-      setUploads(filteredUploads);
-    });
-
-    return unsubscribe;
-  }, [jobId]);
-  const loadUploads = async () => {
+  const loadUploads = useCallback(async () => {
     try {
       const data = await batchUploadService.getBatchUploadsByJob(jobId);
       setUploads(data);
@@ -54,7 +42,19 @@ export function BatchUploadList({ jobId }: BatchUploadListProps) {
     } finally {
       setLoading(false);
     }
-  };  const handleRetry = async (id: string) => {
+  }, [jobId, toast]);
+
+  useEffect(() => {
+    loadUploads();
+    
+    // Subscribe to real-time updates
+    const unsubscribe = batchUploadService.subscribeToUploads((updatedUploads) => {
+      const filteredUploads = updatedUploads.filter(upload => upload.job_id === jobId);
+      setUploads(filteredUploads);
+    });
+
+    return unsubscribe;
+  }, [jobId, loadUploads]);const handleRetry = async (id: string) => {
     try {
       await batchUploadService.retryFailedUpload(id);
       toast({

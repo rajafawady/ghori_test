@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
 import { jobService } from '@/services/jobService';
 import { Job } from '@/types/index';
@@ -6,11 +6,7 @@ import { Job } from '@/types/index';
 export function useJobs() {
   const { state, dispatch } = useAppContext();
 
-  useEffect(() => {
-    loadJobs();
-  }, []);
-
-  const loadJobs = async () => {
+  const loadJobs = useCallback(async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       const jobs = await jobService.getAll();
@@ -20,7 +16,11 @@ export function useJobs() {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  };
+  }, [dispatch]);
+
+  useEffect(() => {
+    loadJobs();
+  }, [loadJobs]);
 
   const createJob = async (jobData: Omit<Job, 'id' | 'created_at' | 'updated_at'>) => {
     try {

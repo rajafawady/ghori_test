@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
 import { Candidate } from '@/types/index';
 import { mockCandidates } from '@/lib/mockData';
@@ -8,11 +8,7 @@ import { candidateService } from '@/services/candidateService';
 export function useCandidates() {
   const { state, dispatch } = useAppContext();
 
-  useEffect(() => {
-    loadCandidates();
-  }, []);
-
-  const loadCandidates = async () => {
+  const loadCandidates = useCallback(async () => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       const candidates = await candidateService.getAll();
@@ -22,7 +18,11 @@ export function useCandidates() {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  };
+  }, [dispatch]);
+
+  useEffect(() => {
+    loadCandidates();
+  }, [loadCandidates]);
 
   const createCandidate = async (candidateData: Omit<Candidate, 'id' | 'created_at' | 'updated_at'>) => {
     try {

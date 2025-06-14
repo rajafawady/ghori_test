@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { User, UserActivity } from '@/types/index';
-import { userService } from '@/services/userService';
 import { useAppContext } from '@/contexts/AppContext';
 import { 
   User as UserIcon, 
@@ -68,16 +67,11 @@ export function UserDetails({ user, onEdit, onDelete, onBack }: UserDetailsProps
   const { state } = useAppContext();
   const [activities, setActivities] = useState<UserActivity[]>([]);
   const [loading, setLoading] = useState(true);
-
   const isCurrentUser = user.id === state.currentUser?.id;
   const canEdit = state.currentUser?.role === 'admin' || isCurrentUser;
   const canDelete = state.currentUser?.role === 'admin' && !isCurrentUser;
 
-  useEffect(() => {
-    loadUserActivities();
-  }, [user.id]);
-
-  const loadUserActivities = async () => {
+  const loadUserActivities = useCallback(async () => {
     try {
       setLoading(true);
       // In a real app, this would be an API call
@@ -89,7 +83,11 @@ export function UserDetails({ user, onEdit, onDelete, onBack }: UserDetailsProps
       console.error('Failed to load user activities:', error);
       setLoading(false);
     }
-  };
+  }, [user.id]);
+
+  useEffect(() => {
+    loadUserActivities();
+  }, [loadUserActivities]);
 
   const getRoleIcon = (role: string) => {
     switch (role) {
@@ -152,28 +150,9 @@ export function UserDetails({ user, onEdit, onDelete, onBack }: UserDetailsProps
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onBack}
-            className="flex items-center space-x-2"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            <span>Back to Users</span>
-          </Button>
           <h1 className="text-3xl font-bold">User Details</h1>
         </div>
         <div className="flex items-center space-x-2">
-          {canEdit && (
-            <Button
-              variant="outline"
-              onClick={onEdit}
-              className="flex items-center space-x-2"
-            >
-              <Edit className="w-4 h-4" />
-              <span>Edit</span>
-            </Button>
-          )}
           {canDelete && (
             <Button
               variant="outline"
@@ -323,16 +302,6 @@ export function UserDetails({ user, onEdit, onDelete, onBack }: UserDetailsProps
           <Card className="p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="space-y-2">
-              {canEdit && (
-                <Button
-                  variant="outline"
-                  onClick={onEdit}
-                  className="w-full justify-start"
-                >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit User
-                </Button>
-              )}
               {state.currentUser?.role === 'admin' && (
                 <>
                   <Button
