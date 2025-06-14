@@ -179,16 +179,18 @@ export function UploadHistoryPage({ companyId = 'company1', jobId }: UploadHisto
     <AdminGuard requireRole="recruiter" message="You need recruiter or admin access to view upload history.">
       <div className="container mx-auto py-8 space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">
-              Upload History{effectiveJobId ? ' - Job Specific' : ' - All Jobs'}
-            </h1>
-            {effectiveJobId && (
-              <p className="text-muted-foreground mt-1">
+          
+
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-gray-900">Batch Uploads{effectiveJobId ? ' - Job Specific' : ' - All Jobs'}</h1>
+                <p className="text-gray-600">Upload and process candidate batches</p>
+                         {effectiveJobId && (
+              <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                <Building className="w-4 h-4 mr-2" />
                 Showing uploads for selected job only
-              </p>
+              </div>
             )}
-          </div>
+            </div>
         <div className="flex items-center space-x-2">
           {effectiveJobId && (
             <Button 

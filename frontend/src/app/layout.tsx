@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from '@/components/ui/toaster';
 import { GlobalUploadProgress } from '@/components/candidates/GlobalUploadProgress';
 import { AppProvider } from '@/contexts/AppContext';
+import { AppLayout } from '@/components/layout/AppLayout';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,10 +29,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gray-50`}
       >
         <AppProvider>
-          {children}
+          <AppLayout>
+            {children}
+          </AppLayout>
           <Toaster />
           <GlobalUploadProgress />
         </AppProvider>

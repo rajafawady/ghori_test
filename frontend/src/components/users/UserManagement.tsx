@@ -299,7 +299,10 @@ export function UserManagement() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">User Management</h1>
+                      <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+              <p className="text-gray-600">Manage user accounts, roles, and permissions</p>
+            </div>
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"

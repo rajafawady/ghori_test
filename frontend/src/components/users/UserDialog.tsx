@@ -180,32 +180,76 @@ export function UserDialog({ isOpen, onClose, user, onSave }: UserDialogProps) {
     }
   };  return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
-        <DialogHeader>
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <UserIcon className="w-5 h-5 text-blue-600" />
+      <DialogContent className="max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
+        <DialogHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <UserIcon className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-semibold text-gray-900">
+                  {isEditing ? 'Edit User' : 'Add New User'}
+                </DialogTitle>
+                <p className="text-sm text-gray-500">
+                  {isEditing ? 'Update user details and permissions' : 'Create a new user account'}
+                </p>
+              </div>
             </div>
-            <div>
-              <DialogTitle className="text-xl font-semibold text-gray-900">
-                {isEditing ? 'Edit User' : 'Add New User'}
-              </DialogTitle>
-              <p className="text-sm text-gray-500">
-                {isEditing ? 'Update user details and permissions' : 'Create a new user account'}              </p>
-            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-8 w-8 p-0"
+            >
+              <X className="w-4 h-4" />
+            </Button>
           </div>
         </DialogHeader>
 
+        {/* Action Buttons */}
+        <div className="flex items-center justify-end space-x-3 pb-4 border-b border-gray-200">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={loading}
+            className="flex items-center space-x-2"
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                <span>{isEditing ? 'Update User' : 'Create User'}</span>
+              </>
+            )}
+          </Button>
+        </div>
+
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-            <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="flex-1 overflow-y-auto py-4">            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Basic Information */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900">Basic Information</h3>
+                <h3 className="text-lg font-medium text-gray-900 flex items-center space-x-2">
+                  <UserIcon className="w-5 h-5" />
+                  <span>Basic Information</span>
+                </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Full Name *
                     </label>
                     <Input
@@ -215,12 +259,15 @@ export function UserDialog({ isOpen, onClose, user, onSave }: UserDialogProps) {
                       className={errors.full_name ? 'border-red-500' : ''}
                     />
                     {errors.full_name && (
-                      <p className="text-red-500 text-xs mt-1">{errors.full_name}</p>
+                      <p className="text-red-500 text-xs mt-1 flex items-center">
+                        <AlertCircle className="w-3 h-3 mr-1" />
+                        {errors.full_name}
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Email Address *
                     </label>
                     <Input
@@ -231,13 +278,16 @@ export function UserDialog({ isOpen, onClose, user, onSave }: UserDialogProps) {
                       className={errors.email ? 'border-red-500' : ''}
                     />
                     {errors.email && (
-                      <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                      <p className="text-red-500 text-xs mt-1 flex items-center">
+                        <AlertCircle className="w-3 h-3 mr-1" />
+                        {errors.email}
+                      </p>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Phone Number
                   </label>
                   <Input
@@ -250,17 +300,20 @@ export function UserDialog({ isOpen, onClose, user, onSave }: UserDialogProps) {
 
               {/* Company & Role */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900">Company & Role</h3>
+                <h3 className="text-lg font-medium text-gray-900 flex items-center space-x-2">
+                  <Building className="w-5 h-5" />
+                  <span>Company & Role</span>
+                </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Company *
                     </label>
                     <select
                       value={formData.company_id}
                       onChange={(e) => handleInputChange('company_id', e.target.value)}
-                      className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
+                      className={`w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                         errors.company_id ? 'border-red-500' : ''
                       }`}
                     >
@@ -272,51 +325,60 @@ export function UserDialog({ isOpen, onClose, user, onSave }: UserDialogProps) {
                       ))}
                     </select>
                     {errors.company_id && (
-                      <p className="text-red-500 text-xs mt-1">{errors.company_id}</p>
+                      <p className="text-red-500 text-xs mt-1 flex items-center">
+                        <AlertCircle className="w-3 h-3 mr-1" />
+                        {errors.company_id}
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Role
                     </label>
                     <select
                       value={formData.role}
                       onChange={(e) => handleInputChange('role', e.target.value as UserRole)}
                       disabled={!canEditRole}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 transition-colors"
                     >
                       <option value="viewer">Viewer</option>
                       <option value="recruiter">Recruiter</option>
                       <option value="admin">Admin</option>
                     </select>
                     {!canEditRole && isCurrentUser && (
-                      <p className="text-xs text-gray-500 mt-1">You cannot change your own role</p>
+                      <p className="text-xs text-amber-600 mt-1 flex items-center">
+                        <AlertCircle className="w-3 h-3 mr-1" />
+                        You cannot change your own role
+                      </p>
                     )}
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-4">
-                  <Badge className={`${getRoleColor(formData.role)} flex items-center gap-1`}>
+                  <Badge className={`${getRoleColor(formData.role)} flex items-center gap-2`}>
                     {getRoleIcon(formData.role)}
-                    {formData.role}
+                    <span className="capitalize">{formData.role}</span>
                   </Badge>
                 </div>
               </div>
 
               {/* Status & Settings */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900">Status & Settings</h3>
+                <h3 className="text-lg font-medium text-gray-900 flex items-center space-x-2">
+                  <UserCheck className="w-5 h-5" />
+                  <span>Status & Settings</span>
+                </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Status
                     </label>
                     <select
                       value={formData.status}
                       onChange={(e) => handleInputChange('status', e.target.value as UserStatus)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     >
                       <option value="active">Active</option>
                       <option value="inactive">Inactive</option>
@@ -326,7 +388,7 @@ export function UserDialog({ isOpen, onClose, user, onSave }: UserDialogProps) {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Timezone
                     </label>
                     <Input
@@ -337,7 +399,7 @@ export function UserDialog({ isOpen, onClose, user, onSave }: UserDialogProps) {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-md">
                   <input
                     type="checkbox"
                     id="is_active"
@@ -346,14 +408,14 @@ export function UserDialog({ isOpen, onClose, user, onSave }: UserDialogProps) {
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                   <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
-                    Account is active
+                    Account is active and can sign in
                   </label>
                 </div>
               </div>
 
               {/* Bio */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Bio
                 </label>
                 <textarea
@@ -361,46 +423,18 @@ export function UserDialog({ isOpen, onClose, user, onSave }: UserDialogProps) {
                   onChange={(e) => handleInputChange('bio', e.target.value)}
                   placeholder="Enter user bio or description"
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
                 />
               </div>
 
               {/* Error Message */}
               {errors.submit && (
-                <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-md">
-                  <AlertCircle className="w-4 h-4" />
+                <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-4 rounded-md border border-red-200">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
                   <span className="text-sm">{errors.submit}</span>
                 </div>
               )}
             </form>
-          </div>          {/* Footer */}
-          <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              onClick={handleSubmit}
-              disabled={loading}
-              className="flex items-center space-x-2"
-            >
-              {loading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Saving...</span>
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  <span>{isEditing ? 'Update User' : 'Create User'}</span>
-                </>
-              )}
-            </Button>
           </div>
       </DialogContent>
     </Dialog>

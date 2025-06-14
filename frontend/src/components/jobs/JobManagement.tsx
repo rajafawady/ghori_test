@@ -102,14 +102,17 @@ export function JobManagement() {
     <AdminGuard requireRole="recruiter" message="You need recruiter or admin access to manage jobs.">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Job Management</h1>
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900">Job Management</h1>
+              <p className="text-gray-600">Create, edit, and manage job postings</p>
+            </div>
           <Button onClick={handleCreateJob} className="flex items-center gap-2">
             <Plus className="w-4 h-4" />
             Create Job
           </Button>
         </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[35%_65%] gap-6">
         <div>
           {searching ? (
             <LoadingCard variant="job" count={3} />
